@@ -12,6 +12,19 @@ export const UIModule = {
         document.getElementById('currentLevel').textContent = CONFIG.currentLevel;
     },
     
+    // Oppdaterer timer-visningen
+    updateTimerDisplay: function(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        const formattedTime = `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+        document.getElementById('timer-display').textContent = formattedTime;
+        
+        // Fjern warning-klassen hvis tiden er mer enn 10 sekunder
+        if (seconds > 10) {
+            document.getElementById('timer-display').classList.remove('time-warning');
+        }
+    },
+    
     // Viser introduksjonsskjermen med informasjon om skaperne
     showIntroScreen: function() {
         // Fjern eventuelle eksisterende meldinger
@@ -34,6 +47,30 @@ export const UIModule = {
         document.getElementById('start-game-btn').addEventListener('click', () => {
             this.removeMessages();
             this.showWelcomeMessage();
+        });
+    },
+    
+    // Oppretter og viser melding når tiden er ute
+    showTimeUpMessage: function() {
+        // Fjern eventuelle eksisterende meldinger
+        this.removeMessages();
+        
+        const timeUpDiv = document.createElement('div');
+        timeUpDiv.id = 'time-up-message';
+        timeUpDiv.className = 'message-overlay';
+        timeUpDiv.innerHTML = `
+            <div class="message-content">
+                <h2>Tiden er ute!</h2>
+                <p>Beklager, du rakk ikke å finne alle påskeeggene i tide.</p>
+                <p>Du må starte helt fra begynnelsen igjen.</p>
+                <button id="restart-game-btn">Start på nytt</button>
+            </div>
+        `;
+        document.body.appendChild(timeUpDiv);
+        
+        document.getElementById('restart-game-btn').addEventListener('click', () => {
+            this.removeMessages();
+            GameModule.resetGame();
         });
     },
     
@@ -91,6 +128,9 @@ export const UIModule = {
         this.removeMessages();
         
         const currentLevel = LEVELS[CONFIG.currentLevel - 1];
+        const timeLimit = CONFIG.levelTimeLimits[CONFIG.currentLevel];
+        const minutes = Math.floor(timeLimit / 60);
+        const seconds = timeLimit % 60;
         
         const welcomeDiv = document.createElement('div');
         welcomeDiv.id = 'welcome-message';
@@ -99,6 +139,7 @@ export const UIModule = {
             <div class="message-content">
                 <h2>Nivå ${CONFIG.currentLevel}</h2>
                 <p>${currentLevel.message}</p>
+                <p>Du har ${minutes} minutt${minutes !== 1 ? 'er' : ''} og ${seconds} sekund${seconds !== 1 ? 'er' : ''} på å fullføre nivået!</p>
                 <button id="start-level-btn">Start</button>
             </div>
         `;
@@ -106,6 +147,8 @@ export const UIModule = {
         
         document.getElementById('start-level-btn').addEventListener('click', () => {
             this.removeMessages();
+            // Start timeren når brukeren klikker på Start-knappen
+            GameModule.startTimer();
         });
     },
     

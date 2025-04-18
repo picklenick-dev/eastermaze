@@ -33,6 +33,12 @@ h1 {
     margin-top: 5px;
 }
 
+#timer {
+    font-weight: bold;
+    color: #B22222; /* Firebrick red color for the timer */
+    margin-top: 5px;
+}
+
 #game-container {
     position: absolute;
     top: 0;
@@ -231,6 +237,17 @@ h1 {
 
 #start-game-btn:hover {
     background-color: #A0522D;
+}
+
+/* For when time is running low */
+.time-warning {
+    color: #FF0000 !important; /* Bright red */
+    animation: pulse 1s infinite alternate;
+}
+
+@keyframes pulse {
+    from { opacity: 1; }
+    to { opacity: 0.5; }
 }
 
 /* Responsive tilpasninger for introduksjonsskjermen */

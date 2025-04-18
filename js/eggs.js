@@ -5,6 +5,7 @@ import { LEVELS } from './levels.js';
 import { PlayerModule } from './player.js';
 import { UIModule } from './ui.js';
 import { GameModule } from './game.js';
+import { SoundModule } from './sound.js';
 
 export const EggModule = {
     eggs: [],
@@ -16,8 +17,19 @@ export const EggModule = {
         this.particleSystems = [];
         const currentLevel = LEVELS[CONFIG.currentLevel - 1];
         const mazeSize = currentLevel.mazeDesign.length;
+        const mazeDesign = currentLevel.mazeDesign;
         
         currentLevel.eggPositions.forEach(pos => {
+            // Sjekk om posisjonen er gyldig (ikke en vegg)
+            const x = pos[0];
+            const z = pos[1];
+            
+            // Sjekk om det er en vegg (1) i denne posisjonen
+            if (mazeDesign[z] && mazeDesign[z][x] === 1) {
+                console.warn(`Egg at position [${x}, ${z}] is inside a wall! Skipping this egg.`);
+                return; // Hopp over egget hvis det er i en vegg
+            }
+            
             // Opprett en gruppe for egget og dets effekter
             const eggGroup = new THREE.Group();
             
@@ -349,6 +361,9 @@ export const EggModule = {
                 if (distance < 0.7) {
                     egg.userData.collected = true;
                     
+                    // Play egg collection sound
+                    SoundModule.playCollectEgg();
+                    
                     // Opprett oppsamlingsanimasjon
                     this.createCollectionAnimation(egg);
                     
@@ -525,10 +540,16 @@ export const EggModule = {
     handleLevelCompletion: function() {
         CONFIG.isLevelCompleted = true;
         
+        // Play level completion sound
+        SoundModule.playLevelComplete();
+        
         if (CONFIG.currentLevel < CONFIG.totalLevels) {
             // Automatisk last neste nivå når alle egg er funnet
             GameModule.loadNextLevel();
         } else {
+            // Play game completion sound if this was the final level
+            SoundModule.playGameComplete();
+            
             // Vis spill-fullført melding hvis dette var siste nivå
             UIModule.showGameCompletedMessage();
             CONFIG.isGameOver = true;

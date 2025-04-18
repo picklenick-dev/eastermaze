@@ -3,6 +3,7 @@
 import { CONFIG } from './config.js';
 import { LEVELS } from './levels.js';
 import { EggModule } from './eggs.js';
+import { SoundModule } from './sound.js';
 
 const PlayerModule = {
     player: null,
@@ -529,7 +530,8 @@ const PlayerModule = {
     
     // Oppdaterer spillerens posisjon basert på kontrollene
     updatePosition: function() {
-        if (CONFIG.isGameOver || CONFIG.isLevelCompleted) return;
+        // Don't move if game is over, level is completed, or timer isn't active
+        if (CONFIG.isGameOver || CONFIG.isLevelCompleted || !CONFIG.timerActive) return;
         
         const moveSpeed = 0.1;
         let newX = this.playerPosition.x;
@@ -624,6 +626,9 @@ const PlayerModule = {
             this.hopState = 'rising';
             this.hopProgress = 0;
             this.lastHopTime = now;
+            
+            // Play hop sound when starting a new hop
+            SoundModule.playHop();
         }
         
         // Handle the hopping animation states
