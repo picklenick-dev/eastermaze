@@ -1,5 +1,12 @@
+// filepath: c:\Development\easter-labrynth\js\eggs.js
 // Håndterer påskeegg
-const EggModule = {
+import { CONFIG } from './config.js';
+import { LEVELS } from './levels.js';
+import { PlayerModule } from './player.js';
+import { UIModule } from './ui.js';
+import { GameModule } from './game.js';
+
+export const EggModule = {
     eggs: [],
     particleSystems: [],
     
@@ -164,7 +171,6 @@ const EggModule = {
             stripe.position.y = -0.1 + 0.6 * Math.sin(angle);
             stripe.rotation.x = Math.PI/2;
             stripe.scale.set(0.8, 0.8, 1); // Juster for å passe egget
-            
             egg.add(stripe);
         }
     },
@@ -345,6 +351,9 @@ const EggModule = {
                     
                     // Opprett oppsamlingsanimasjon
                     this.createCollectionAnimation(egg);
+                    
+                    // Make the rabbit happy when collecting an egg
+                    PlayerModule.showHappyMouth();
                     
                     CONFIG.eggsFound++;
                     UIModule.updateScoreDisplay();

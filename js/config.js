@@ -1,5 +1,6 @@
+// filepath: c:\Development\easter-labrynth\js\config.js
 // Globale spillvariabler og konfigurasjoner
-const CONFIG = {
+export const CONFIG = {
     // Felles variabler
     scene: null,
     camera: null,

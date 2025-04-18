@@ -1,5 +1,10 @@
+// filepath: c:\Development\easter-labrynth\js\ui.js
 // Håndterer brukergrensesnittet
-const UIModule = {
+import { CONFIG } from './config.js';
+import { LEVELS } from './levels.js';
+import { GameModule } from './game.js';
+
+export const UIModule = {
     // Oppdaterer poengsummen
     updateScoreDisplay: function() {
         document.getElementById('eggsFound').textContent = CONFIG.eggsFound;

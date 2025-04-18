@@ -10,7 +10,7 @@ import { level8 } from './levels/level8.js';
 import { level9 } from './levels/level9.js';
 import { level10 } from './levels/level10.js';
 
-const LEVELS = [
+export const LEVELS = [
     level1,
     level2,
     level3,

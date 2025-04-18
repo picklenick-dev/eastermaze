@@ -1,5 +1,13 @@
+// filepath: c:\Development\easter-labrynth\js\game.js
 // Hovedspillmodul som koordinerer spillet
-const GameModule = {
+import { CONFIG } from './config.js';
+import { MazeModule } from './maze.js';
+import { PlayerModule } from './player.js';
+import { EggModule } from './eggs.js';
+import { UIModule } from './ui.js';
+import { RendererModule } from './renderer.js';
+
+export const GameModule = {
     // Initalisering av spillet
     init: function() {
         // Initialiser renderer og scene
@@ -91,9 +99,4 @@ const GameModule = {
         // Renderer scenen
         RendererModule.render();
     }
-};
-
-// Start spillet når siden er lastet
-window.onload = function() {
-    GameModule.init();
 };

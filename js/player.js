@@ -1,4 +1,9 @@
+// filepath: c:\Development\easter-labrynth\js\player.js
 // Håndterer spilleren
+import { CONFIG } from './config.js';
+import { LEVELS } from './levels.js';
+import { EggModule } from './eggs.js';
+
 const PlayerModule = {
     player: null,
     playerPosition: { x: 1, z: 1 },
@@ -12,6 +17,11 @@ const PlayerModule = {
     hopProgress: 0,
     lastHopTime: 0,
     hopCooldown: 200, // ms between hops
+    
+    // Mouth animation
+    mouthState: 'normal', // 'normal', 'happy'
+    mouthObject: null,
+    happyMouthTimer: 0,
     
     // Mobile touch controls variables
     isMobile: false,
@@ -185,6 +195,9 @@ const PlayerModule = {
         nose.position.set(0, 0.88, 0.5);
         this.player.add(nose);
         
+        // Add mouth - new addition
+        this.addMouth();
+        
         // Add whiskers
         const whiskerMaterial = new THREE.LineBasicMaterial({ 
             color: 0xFFFFFF,
@@ -271,6 +284,98 @@ const PlayerModule = {
         this.player.add(tailFluff);
         
         this.playerModel = this.player;
+    },
+    
+    // Add a mouth to the rabbit - new function
+    addMouth: function() {
+        // Create a group to hold the mouth
+        const mouthGroup = new THREE.Group();
+        mouthGroup.position.set(0, 0.81, 0.5);
+        
+        // Normal mouth - slight smile
+        const normalMouthGeometry = new THREE.BufferGeometry();
+        const normalMouthCurve = new THREE.QuadraticBezierCurve3(
+            new THREE.Vector3(-0.06, 0, 0),   // Start point
+            new THREE.Vector3(0, -0.03, 0),   // Control point
+            new THREE.Vector3(0.06, 0, 0)     // End point
+        );
+        
+        // Create the points along the curve
+        const normalMouthPoints = normalMouthCurve.getPoints(10);
+        normalMouthGeometry.setFromPoints(normalMouthPoints);
+        
+        // Create the mouth line
+        const mouthMaterial = new THREE.LineBasicMaterial({ color: 0x444444 });
+        const normalMouth = new THREE.Line(normalMouthGeometry, mouthMaterial);
+        
+        // Store reference to the normal mouth
+        normalMouth.visible = true;
+        mouthGroup.add(normalMouth);
+        
+        // Happy mouth - big smile shape
+        const happyMouthGeometry = new THREE.BufferGeometry();
+        const happyMouthCurve = new THREE.QuadraticBezierCurve3(
+            new THREE.Vector3(-0.08, 0, 0),   // Start point
+            new THREE.Vector3(0, -0.06, 0),   // Control point for deeper smile
+            new THREE.Vector3(0.08, 0, 0)     // End point
+        );
+        
+        // Create the points along the curve
+        const happyMouthPoints = happyMouthCurve.getPoints(15);
+        happyMouthGeometry.setFromPoints(happyMouthPoints);
+        
+        // Create the happy mouth line
+        const happyMouthMaterial = new THREE.LineBasicMaterial({ color: 0x222222, linewidth: 2 });
+        const happyMouth = new THREE.Line(happyMouthGeometry, happyMouthMaterial);
+        
+        // Initially hidden
+        happyMouth.visible = false;
+        mouthGroup.add(happyMouth);
+        
+        // Store reference to the mouth for animation
+        this.mouthGroup = mouthGroup;
+        this.normalMouth = normalMouth;
+        this.happyMouth = happyMouth;
+        
+        // Add mouth to rabbit
+        this.player.add(mouthGroup);
+    },
+    
+    // Make the rabbit happy - new function
+    showHappyMouth: function() {
+        if (this.mouthGroup) {
+            this.mouthState = 'happy';
+            this.normalMouth.visible = false;
+            this.happyMouth.visible = true;
+            this.happyMouthTimer = 60; // Show happy mouth for about 2 seconds (assuming 30fps)
+        }
+    },
+    
+    // Return to normal mouth - new function
+    resetMouth: function() {
+        if (this.mouthGroup) {
+            this.mouthState = 'normal';
+            this.normalMouth.visible = true;
+            this.happyMouth.visible = false;
+        }
+    },
+    
+    // Update mouth animation - new function
+    updateMouth: function() {
+        if (this.mouthState === 'happy') {
+            // Count down happy mouth timer
+            this.happyMouthTimer--;
+            
+            if (this.happyMouthTimer <= 0) {
+                this.resetMouth();
+            } else if (this.happyMouthTimer < 15) {
+                // Fade between happy and normal in the last 0.5 seconds
+                if (this.happyMouthTimer % 3 === 0) {
+                    this.normalMouth.visible = !this.normalMouth.visible;
+                    this.happyMouth.visible = !this.happyMouth.visible;
+                }
+            }
+        }
     },
     
     // Legger til en lyseffekt rundt spilleren
@@ -430,26 +535,27 @@ const PlayerModule = {
         let newX = this.playerPosition.x;
         let newZ = this.playerPosition.z;
         let moved = false;
+        let direction = new THREE.Vector3(0, 0, 0);
         
         // Handle keyboard controls
         if (CONFIG.keyState.ArrowUp) { 
             newZ -= moveSpeed; 
-            this.player.rotation.y = Math.PI;
+            direction.z = -1;
             moved = true;
         }
         if (CONFIG.keyState.ArrowDown) { 
             newZ += moveSpeed; 
-            this.player.rotation.y = 0;
+            direction.z = 1;
             moved = true;
         }
         if (CONFIG.keyState.ArrowLeft) { 
             newX -= moveSpeed; 
-            this.player.rotation.y = Math.PI / 2;
+            direction.x = -1;
             moved = true;
         }
         if (CONFIG.keyState.ArrowRight) { 
             newX += moveSpeed; 
-            this.player.rotation.y = -Math.PI / 2;
+            direction.x = 1;
             moved = true;
         }
         
@@ -459,16 +565,27 @@ const PlayerModule = {
             newZ += this.joystickVector.y * moveSpeed;
             newX += this.joystickVector.x * moveSpeed;
             
-            // Set rotation based on joystick direction
-            this.player.rotation.y = Math.atan2(-this.joystickVector.x, -this.joystickVector.y);
+            // Include joystick input in direction vector
+            direction.x = this.joystickVector.x;
+            direction.z = this.joystickVector.y;
             
             moved = true;
+        }
+        
+        // If we have movement, update player rotation to face the right direction
+        if (moved && (direction.x !== 0 || direction.z !== 0)) {
+            // Calculate the angle to rotate the player
+            const angle = Math.atan2(direction.x, direction.z);
+            this.player.rotation.y = angle;
         }
         
         // Animer hopping hvis spilleren beveger seg
         if (moved) {
             this.animateHop();
         }
+        
+        // Update mouth animation
+        this.updateMouth();
         
         // Sjekk kollisjoner med veggene
         const currentLevel = LEVELS[CONFIG.currentLevel - 1];
@@ -743,3 +860,5 @@ const PlayerModule = {
         this.updateCameraPosition();
     }
 };
+
+export { PlayerModule };

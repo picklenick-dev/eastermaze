@@ -1,5 +1,8 @@
+// filepath: c:\Development\easter-labrynth\js\renderer.js
 // Renderer-håndtering for spillet
-const RendererModule = {
+import { CONFIG } from './config.js';
+
+export const RendererModule = {
     // Initalisere Three.js komponenter
     init: function() {
         // Opprette Three.js scene

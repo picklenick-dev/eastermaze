@@ -1,5 +1,11 @@
+// filepath: c:\Development\easter-labrynth\js\maze.js
 // Håndterer labyrinten
-const MazeModule = {
+import { CONFIG } from './config.js';
+import { LEVELS } from './levels.js';
+import { PlayerModule } from './player.js';
+
+// Håndterer labyrinten
+export const MazeModule = {
     maze: null,
     walls: [], // Array for å holde referanser til alle veggene
     
