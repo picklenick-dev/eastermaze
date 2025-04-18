@@ -7,6 +7,31 @@ const UIModule = {
         document.getElementById('currentLevel').textContent = CONFIG.currentLevel;
     },
     
+    // Viser introduksjonsskjermen med informasjon om skaperne
+    showIntroScreen: function() {
+        // Fjern eventuelle eksisterende meldinger
+        this.removeMessages();
+        
+        const introDiv = document.createElement('div');
+        introDiv.id = 'intro-screen';
+        introDiv.className = 'message-overlay';
+        introDiv.innerHTML = `
+            <div class="message-content intro-content">
+                <h2>Påskelabyrinten</h2>
+                <p>Laget av Oliver Grant, Ella Louise og Nicklas</p>
+                <p>Påsken 2025</p>
+                <p class="intro-description">Hjelp kaninen med å finne alle påskeeggene i labyrinten!</p>
+                <button id="start-game-btn">Start spillet</button>
+            </div>
+        `;
+        document.body.appendChild(introDiv);
+        
+        document.getElementById('start-game-btn').addEventListener('click', () => {
+            this.removeMessages();
+            this.showWelcomeMessage();
+        });
+    },
+    
     // Oppretter og viser melding når nivå er fullført
     showLevelCompletedMessage: function() {
         // Fjern eventuelle eksisterende meldinger

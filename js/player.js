@@ -6,6 +6,16 @@ const PlayerModule = {
     glowEffect: null,
     rotationAngle: 0,
     
+    // Mobile touch controls variables
+    isMobile: false,
+    joystickActive: false,
+    joystickElement: null,
+    joystickKnob: null,
+    joystickCenter: { x: 0, y: 0 },
+    joystickPosition: { x: 0, y: 0 },
+    joystickVector: { x: 0, y: 0 },
+    joystickSize: 60, // Radius in pixels for maximum movement
+    
     // Oppretter spiller
     createPlayer: function() {
         // Opprett en gruppe for spillermodellen
@@ -183,9 +193,123 @@ const PlayerModule = {
                 e.preventDefault();
             }
         });
+
+        // Detect mobile devices and set up controls
+        this.detectMobile();
     },
     
-    // Oppdaterer spillerens posisjon basert på tastetrykkene
+    // Detekterer om enheten er mobil
+    detectMobile: function() {
+        this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
+        // Set up mobile controls if needed
+        if (this.isMobile) {
+            this.setupMobileControls();
+        }
+    },
+
+    // Setter opp mobile kontroller (joystick)
+    setupMobileControls: function() {
+        // Get reference to joystick elements
+        this.joystickElement = document.getElementById('mobile-controls');
+        this.joystickKnob = document.getElementById('joystick');
+        
+        // Update joystick center
+        const joystickRect = this.joystickElement.getBoundingClientRect();
+        this.joystickCenter = {
+            x: joystickRect.left + joystickRect.width / 2,
+            y: joystickRect.top + joystickRect.height / 2
+        };
+        
+        // Add touch event listeners
+        this.joystickElement.addEventListener('touchstart', this.handleTouchStart.bind(this));
+        this.joystickElement.addEventListener('touchmove', this.handleTouchMove.bind(this));
+        this.joystickElement.addEventListener('touchend', this.handleTouchEnd.bind(this));
+    },
+
+    // Håndterer start av touch
+    handleTouchStart: function(event) {
+        event.preventDefault();
+        
+        this.joystickActive = true;
+        
+        // Update joystick center position
+        const joystickRect = this.joystickElement.getBoundingClientRect();
+        this.joystickCenter = {
+            x: joystickRect.left + joystickRect.width / 2,
+            y: joystickRect.top + joystickRect.height / 2
+        };
+        
+        // Update joystick position
+        const touch = event.touches[0];
+        this.updateJoystickPosition(touch);
+    },
+
+    // Håndterer bevegelse av touch
+    handleTouchMove: function(event) {
+        if (!this.joystickActive) return;
+        
+        event.preventDefault();
+        const touch = event.touches[0];
+        this.updateJoystickPosition(touch);
+    },
+
+    // Håndterer slutt på touch
+    handleTouchEnd: function(event) {
+        event.preventDefault();
+        
+        // Reset joystick position and vector
+        this.joystickActive = false;
+        this.joystickVector = { x: 0, y: 0 };
+        
+        // Reset joystick knob position to center
+        if (this.joystickKnob) {
+            this.joystickKnob.style.transform = 'translate(-50%, -50%)';
+        }
+    },
+
+    // Oppdaterer joystick-posisjonen og beregner vektor
+    updateJoystickPosition: function(touch) {
+        // Calculate the touch position relative to joystick center
+        const touchX = touch.clientX;
+        const touchY = touch.clientY;
+        
+        // Calculate vector from center to touch position
+        let deltaX = touchX - this.joystickCenter.x;
+        let deltaY = touchY - this.joystickCenter.y;
+        
+        // Calculate the distance from center
+        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+        
+        // Normalize and limit the vector length to joystick size
+        if (distance > this.joystickSize) {
+            const ratio = this.joystickSize / distance;
+            deltaX *= ratio;
+            deltaY *= ratio;
+        }
+        
+        // Update joystick position
+        this.joystickPosition = {
+            x: this.joystickCenter.x + deltaX,
+            y: this.joystickCenter.y + deltaY
+        };
+        
+        // Update joystick vector (normalized direction)
+        const normalizedX = deltaX / this.joystickSize;
+        const normalizedY = deltaY / this.joystickSize;
+        
+        this.joystickVector = {
+            x: normalizedX,
+            y: normalizedY
+        };
+        
+        // Move the joystick knob visually
+        if (this.joystickKnob) {
+            this.joystickKnob.style.transform = `translate(calc(-50% + ${deltaX}px), calc(-50% + ${deltaY}px))`;
+        }
+    },
+    
+    // Oppdaterer spillerens posisjon basert på kontrollene
     updatePosition: function() {
         if (CONFIG.isGameOver || CONFIG.isLevelCompleted) return;
         
@@ -194,7 +318,7 @@ const PlayerModule = {
         let newZ = this.playerPosition.z;
         let moved = false;
         
-        // Bestem retning
+        // Handle keyboard controls
         if (CONFIG.keyState.ArrowUp) { 
             newZ -= moveSpeed; 
             this.player.rotation.y = Math.PI;
@@ -213,6 +337,18 @@ const PlayerModule = {
         if (CONFIG.keyState.ArrowRight) { 
             newX += moveSpeed; 
             this.player.rotation.y = -Math.PI / 2;
+            moved = true;
+        }
+        
+        // Handle touch/joystick controls
+        if (this.joystickActive && (this.joystickVector.x !== 0 || this.joystickVector.y !== 0)) {
+            // Joystick input affects movement
+            newZ += this.joystickVector.y * moveSpeed;
+            newX += this.joystickVector.x * moveSpeed;
+            
+            // Set rotation based on joystick direction
+            this.player.rotation.y = Math.atan2(-this.joystickVector.x, -this.joystickVector.y);
+            
             moved = true;
         }
         

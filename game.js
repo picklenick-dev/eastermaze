@@ -37,8 +37,18 @@ const keyState = {
     ArrowRight: false
 };
 
+// Touch kontroll variabler
+let isMobile = false;
+let joystickActive = false;
+let joystickCenter = { x: 0, y: 0 };
+let joystickPosition = { x: 0, y: 0 };
+let joystickVector = { x: 0, y: 0 };
+
 // Initialisere spillet
 function init() {
+    // Sjekk om enheten er mobil
+    detectMobile();
+    
     // Opprette Three.js scene
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x87CEEB); // Himmelblå bakgrunn

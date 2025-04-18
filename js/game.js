@@ -14,8 +14,8 @@ const GameModule = {
         // Start animasjonsløkken
         this.animate();
         
-        // Vis velkomstmelding for første nivå
-        UIModule.showWelcomeMessage();
+        // Vis introduksjonsskjerm først
+        UIModule.showIntroScreen();
     },
     
     // Last inn et nivå
@@ -71,8 +71,8 @@ const GameModule = {
         // Last inn første nivå
         this.loadLevel();
         
-        // Vis velkomstmelding
-        UIModule.showWelcomeMessage();
+        // Vis introduksjonsskjerm i stedet for velkomstmelding når spillet restartes
+        UIModule.showIntroScreen();
     },
     
     // Animasjonsløkke
