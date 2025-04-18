@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Påskelabyrinten</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="info">
+        <h1>Påskelabyrinten</h1>
+        <p>Bruk piltastene for å navigere. Finn alle påskeeggene!</p>
+        <div id="score">Påskeegg funnet: <span id="eggsFound">0</span>/<span id="totalEggs">0</span></div>
+        <div id="level-info">Nivå <span id="currentLevel">1</span></div>
+    </div>
+    <div id="game-container"></div>
+    
+    <!-- Three.js bibliotek -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <!-- Spillmoduler -->
+    <script src="js/config.js"></script>
+    <script src="js/levels.js"></script>
+    <script src="js/renderer.js"></script>
+    <script src="js/player.js"></script>
+    <script src="js/eggs.js"></script>
+    <script src="js/maze.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/game.js"></script>
+</body>
+</html>
