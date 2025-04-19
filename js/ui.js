@@ -37,7 +37,7 @@ export const UIModule = {
             <div class="message-content intro-content">
                 <h2>Påskelabyrinten</h2>
                 <p>Laget av Oliver Grant, Ella Louise og Nicklas</p>
-                <p>Påsken 2025</p>
+                <p>© Påsken 2025</p>
                 <p class="intro-description">Hjelp kaninen med å finne alle påskeeggene i labyrinten!</p>
                 <div class="sound-option">
                     <label>
@@ -146,6 +146,9 @@ export const UIModule = {
         welcomeDiv.innerHTML = `
             <div class="message-content">
                 <h2>Nivå ${CONFIG.currentLevel}</h2>
+                <div class="credits-info">
+                    <p><strong>Påskelabyrinten</strong> — Utviklet av Oliver Grant, Ella Louise og Nicklas © 2025</p>
+                </div>
                 <p>${currentLevel.message}</p>
                 <p>Du har ${minutes} minutt${minutes !== 1 ? 'er' : ''} og ${seconds} sekund${seconds !== 1 ? 'er' : ''} på å fullføre nivået!</p>
                 <button id="start-level-btn">Start</button>
