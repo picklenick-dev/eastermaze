@@ -137,6 +137,9 @@ export const GameModule = {
         // Øk nivånummeret
         CONFIG.currentLevel++;
         
+        // Restore player lives to maximum when completing a level
+        CONFIG.playerLives = CONFIG.maxPlayerLives;
+        
         // Oppdater UI
         UIModule.updateScoreDisplay();
         
