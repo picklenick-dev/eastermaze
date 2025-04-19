@@ -33,34 +33,59 @@ export const HighScoreModule = {
     // Update the score when an egg is collected
     addEggPoints: function() {
         const now = Date.now();
-        const baseEggPoints = 100;
         
-        // Check if combo is active (egg collected within time window)
-        if (CONFIG.lastEggTime > 0 && (now - CONFIG.lastEggTime) < CONFIG.comboTimeWindow) {
-            // Increase combo count and multiplier when eggs are collected in succession
-            CONFIG.comboCount++;
-            CONFIG.comboMultiplier = 1 + (CONFIG.comboCount * 0.5); // x1.5, x2, x2.5, etc.
-            
-            // Flash the combo text to highlight increase
-            const comboElement = document.getElementById('combo');
-            comboElement.classList.remove('combo-flash');
-            setTimeout(() => comboElement.classList.add('combo-flash'), 10);
-            
-            // Keep track of the max combo for level completion bonus
-            if (CONFIG.comboCount > CONFIG.maxCombo) {
-                CONFIG.maxCombo = CONFIG.comboCount;
+        // Base points for egg collection with level scaling
+        // Significantly higher points for levels 8-10
+        let baseEggPoints = 100;
+        if (CONFIG.currentLevel <= 7) {
+            // Levels 1-7: Linear increase (20% per level)
+            baseEggPoints = 100 * (1 + (CONFIG.currentLevel - 1) * 0.2);
+        } else {
+            // Levels 8-10: Exponential increase
+            const levelFactor = {
+                8: 2.5,  // 250% of base
+                9: 3.5,  // 350% of base
+                10: 5.0  // 500% of base
+            };
+            baseEggPoints = 100 * levelFactor[CONFIG.currentLevel];
+        }
+        
+        // Apply the crocodile difficulty modifier (1/4 points if no crocodiles)
+        const difficultyModifier = CONFIG.crocodilesEnabled ? 1.0 : 0.25;
+        
+        // Only enable combo system when crocodiles are enabled
+        if (CONFIG.crocodilesEnabled) {
+            // Check if combo is active (egg collected within time window)
+            if (CONFIG.lastEggTime > 0 && (now - CONFIG.lastEggTime) < CONFIG.comboTimeWindow) {
+                // Increase combo count and multiplier when eggs are collected in succession
+                CONFIG.comboCount++;
+                CONFIG.comboMultiplier = 1 + (CONFIG.comboCount * 0.5); // x1.5, x2, x2.5, etc.
+                
+                // Flash the combo text to highlight increase
+                const comboElement = document.getElementById('combo');
+                comboElement.classList.remove('combo-flash');
+                setTimeout(() => comboElement.classList.add('combo-flash'), 10);
+                
+                // Keep track of the max combo for level completion bonus
+                if (CONFIG.comboCount > CONFIG.maxCombo) {
+                    CONFIG.maxCombo = CONFIG.comboCount;
+                }
+            } else {
+                // Reset combo if too much time has passed
+                CONFIG.comboCount = 1; // Start at 1 (first egg = 1x combo)
+                CONFIG.comboMultiplier = 1.0;
             }
         } else {
-            // Reset combo if too much time has passed
-            CONFIG.comboCount = 0;
-            CONFIG.comboMultiplier = 1;
+            // If crocodiles are disabled, set combo to 1x permanently
+            CONFIG.comboCount = 1;
+            CONFIG.comboMultiplier = 1.0;
         }
         
         // Update last egg collection time
         CONFIG.lastEggTime = now;
         
-        // Add points with combo multiplier
-        const points = Math.round(baseEggPoints * CONFIG.comboMultiplier);
+        // Add points with combo multiplier and difficulty modifier
+        const points = Math.round(baseEggPoints * CONFIG.comboMultiplier * difficultyModifier);
         CONFIG.score += points;
         CONFIG.levelScore += points;
         CONFIG.totalScore += points; // Update total score as well
@@ -69,8 +94,14 @@ export const HighScoreModule = {
         this.updateScoreDisplay();
         this.updateComboDisplay();
         
-        // Start the combo timer animation
-        this.startComboTimer();
+        // Start the combo timer animation only if crocodiles are enabled
+        if (CONFIG.crocodilesEnabled) {
+            this.startComboTimer();
+        } else {
+            // Reset combo bar to 0% when crocodiles are disabled
+            const comboBar = document.getElementById('combo-bar');
+            comboBar.style.width = '0%';
+        }
         
         return points;
     },

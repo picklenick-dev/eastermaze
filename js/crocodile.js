@@ -610,6 +610,30 @@ export const CrocodileModule = {
         });
     },
     
+    // Check if new position is too close to another crocodile
+    checkCrocodileProximity: function(newX, newZ, currentCrocodile) {
+        const MIN_DISTANCE = 2.0; // Minimum allowed distance between crocodiles
+        
+        for (const crocodile of this.crocodiles) {
+            // Skip checking against itself
+            if (crocodile === currentCrocodile) continue;
+            
+            // Calculate distance to other crocodile
+            const distance = Math.sqrt(
+                Math.pow(newX - crocodile.userData.gridX, 2) + 
+                Math.pow(newZ - crocodile.userData.gridZ, 2)
+            );
+            
+            // If too close, return true (indicating proximity issue)
+            if (distance < MIN_DISTANCE) {
+                return true;
+            }
+        }
+        
+        // No proximity issues found
+        return false;
+    },
+    
     // Beveg krokodillen mot spilleren
     moveCrocodile: function(crocodile, playerPosition, mazeDesign) {
         // Hvis vi har en sti å følge
@@ -654,7 +678,8 @@ export const CrocodileModule = {
                 
                 if (gridX >= 0 && gridX < mazeDesign[0].length && 
                     gridZ >= 0 && gridZ < mazeDesign.length && 
-                    mazeDesign[gridZ][gridX] !== 1) {
+                    mazeDesign[gridZ][gridX] !== 1 &&
+                    !this.checkCrocodileProximity(newX, newZ, crocodile)) {
                     
                     // Oppdater posisjon i grid
                     crocodile.userData.gridX = newX;
@@ -702,7 +727,8 @@ export const CrocodileModule = {
             
             if (gridX >= 0 && gridX < mazeDesign[0].length && 
                 gridZ >= 0 && gridZ < mazeDesign.length && 
-                mazeDesign[gridZ][gridX] !== 1) {
+                mazeDesign[gridZ][gridX] !== 1 &&
+                !this.checkCrocodileProximity(newX, newZ, crocodile)) {
                 
                 // Oppdater posisjon i grid
                 crocodile.userData.gridX = newX;
