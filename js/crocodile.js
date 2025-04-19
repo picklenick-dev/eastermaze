@@ -762,7 +762,8 @@ export const CrocodileModule = {
             
             // Hvis spilleren har mistet alle liv
             if (CONFIG.playerLives <= 0) {
-              
+                // Spill krokodille-spiser-spiller lyd
+                SoundModule.playCrocodileBite();
     
                 // Sett spilltilstand
                 CONFIG.isGameOver = true;
