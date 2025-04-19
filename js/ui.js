@@ -305,7 +305,58 @@ export const UIModule = {
         // Handle Enter key in name input
         document.getElementById('completion-name-input').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
-                document.getElementById('save-score-btn').click();
+                // Get a reference to the button directly
+                const saveButton = document.getElementById('save-score-btn');
+                if (saveButton) {
+                    // Explicitly call the click handler manually instead of using click()
+                    const nameInput = document.getElementById('completion-name-input');
+                    const playerName = nameInput.value.trim() || 'Anonym kanin';
+                    
+                    // Disable the button to prevent multiple submissions
+                    saveButton.disabled = true;
+                    saveButton.textContent = 'Lagrer...';
+                    
+                    // Save the player name for future use
+                    HighScoreModule.savePlayerName(playerName);
+                    
+                    // Add the score and show leaderboard
+                    HighScoreModule.addHighScore(playerName, CONFIG.totalScore, CONFIG.currentLevel);
+                    
+                    // Show a confirmation that the score was saved
+                    const messagePara = document.createElement('p');
+                    messagePara.className = 'score-saved-message';
+                    messagePara.textContent = 'Poengsum lagret!';
+                    messagePara.style.color = '#4CAF50';
+                    messagePara.style.fontWeight = 'bold';
+                    
+                    const nameContainer = document.querySelector('.name-input-container');
+                    if (nameContainer && !document.querySelector('.score-saved-message')) {
+                        nameContainer.insertAdjacentElement('afterend', messagePara);
+                    }
+                    
+                    // Update button text to show completion
+                    saveButton.textContent = 'Lagret!';
+                    
+                    // Show the leaderboard with the newly added score
+                    setTimeout(() => {
+                        HighScoreModule.loadHighScoresFromCloud().then(() => {
+                            HighScoreModule.showLeaderboard(CONFIG.totalScore, true);
+                            
+                            // After a short delay, hide the leaderboard and show the intro screen
+                            setTimeout(() => {
+                                // Hide the leaderboard
+                                document.getElementById('leaderboard').style.display = 'none';
+                                
+                                // Show the intro screen
+                                UIModule.removeMessages();
+                                UIModule.showIntroScreen();
+                            }, 2000);
+                        });
+                    }, 500);
+                } else {
+                    // If button not found, just try to click it anyway (fallback)
+                    document.getElementById('save-score-btn').click();
+                }
             }
         });
         

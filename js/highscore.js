@@ -286,7 +286,10 @@ export const HighScoreModule = {
             
             // Add event listener for the close button
             closeButton.addEventListener('click', () => {
-                leaderboardElement.style.display = 'none';
+                // Only allow closing if not in the middle of saving
+                if (!closeButton.disabled) {
+                    leaderboardElement.style.display = 'none';
+                }
             });
             
             contentDiv.appendChild(heading);
@@ -295,6 +298,14 @@ export const HighScoreModule = {
             leaderboardElement.appendChild(contentDiv);
             
             document.body.appendChild(leaderboardElement);
+        }
+        
+        // Get reference to the close button
+        const closeButton = document.getElementById('close-leaderboard-btn');
+        
+        // Reset the close button state (enable it by default)
+        if (closeButton) {
+            closeButton.disabled = false;
         }
         
         const entriesElement = document.getElementById('leaderboard-entries');
@@ -416,6 +427,13 @@ export const HighScoreModule = {
                     saveButton.disabled = true;
                     saveButton.textContent = 'Lagrer...';
                     
+                    // Disable the close button during save operation
+                    const closeButton = document.getElementById('close-leaderboard-btn');
+                    if (closeButton) {
+                        closeButton.disabled = true;
+                        closeButton.textContent = 'Lagrer...';
+                    }
+                    
                     const nameInput = document.getElementById('player-name-input');
                     const playerName = nameInput.value.trim() || 'Anonym kanin';
                     
@@ -425,31 +443,48 @@ export const HighScoreModule = {
                     // Add the score and refresh the leaderboard
                     const position = this.addHighScore(playerName, currentScore, CONFIG.currentLevel);
                     
-                    // Update button text
-                    saveButton.textContent = 'Lagret!';
-                    
-                    // Remove the form
-                    formDiv.remove();
-                    
-                    // Refresh from cloud and then briefly show the leaderboard with highlighted score
-                    this.loadHighScoresFromCloud().then(() => {
-                        this.showLeaderboard(currentScore, true);
+                    // Re-enable the close button once the save is done
+                    this.saveHighScoresToCloud().then(() => {
+                        // Update button text
+                        saveButton.textContent = 'Lagret!';
                         
-                        // After a short delay, hide the leaderboard and show the intro screen
-                        setTimeout(() => {
-                            // Hide the leaderboard
-                            document.getElementById('leaderboard').style.display = 'none';
+                        // Re-enable the close button
+                        if (closeButton) {
+                            closeButton.disabled = false;
+                            closeButton.textContent = 'Lukk';
+                        }
+                        
+                        // Remove the form
+                        formDiv.remove();
+                        
+                        // Refresh from cloud and then briefly show the leaderboard with highlighted score
+                        this.loadHighScoresFromCloud().then(() => {
+                            this.showLeaderboard(currentScore, true);
                             
-                            // Show the intro screen
-                            UIModule.showIntroScreen();
-                        }, 2000); // Show the leaderboard for 2 seconds before returning to the menu
+                            // After a short delay, hide the leaderboard and show the intro screen
+                            setTimeout(() => {
+                                // Hide the leaderboard
+                                document.getElementById('leaderboard').style.display = 'none';
+                                
+                                // Show the intro screen
+                                UIModule.showIntroScreen();
+                            }, 2000); // Show the leaderboard for 2 seconds before returning to the menu
+                        });
+                    }).catch(error => {
+                        console.error('Error while saving score:', error);
+                        
+                        // Re-enable the close button even if there's an error
+                        if (closeButton) {
+                            closeButton.disabled = false;
+                            closeButton.textContent = 'Lukk';
+                        }
                     });
                 });
                 
                 // Also handle Enter key press
                 document.getElementById('player-name-input').addEventListener('keypress', (e) => {
                     if (e.key === 'Enter') {
-                        document.getElementById('save-score-btn').click();
+                        document.getElementById('lagre-score-btn').click();
                     }
                 });
             }
@@ -468,6 +503,8 @@ export const HighScoreModule = {
         
         // Create a unique ID for the game site
         const siteId = window.location.hostname || 'local-development';
+        
+        console.log("Attempting to save scores to cloud", CONFIG.highScores.length);
         
         // Use JSONBin.io with your specific bin ID and access key
         return fetch('https://api.jsonbin.io/v3/b/6803b4438960c979a588a4a9', {
@@ -494,6 +531,8 @@ export const HighScoreModule = {
         })
         .catch(error => {
             console.error('Error saving high scores to cloud:', error);
+            // Still try to save to localStorage as backup
+            this.saveHighScores();
             return Promise.reject(error);
         });
     },

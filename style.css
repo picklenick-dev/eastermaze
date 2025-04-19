@@ -108,7 +108,7 @@ h1 {
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 200;
+    z-index: 1000; /* Increased z-index to ensure it's above the joystick */
 }
 
 .message-content {
@@ -436,7 +436,7 @@ h1 {
 
 /* Leaderboard */
 #leaderboard {
-    z-index: 300;
+    z-index: 1000; /* Increased to match message-overlay z-index */
 }
 
 #leaderboard-entries {
