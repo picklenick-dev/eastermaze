@@ -17,7 +17,7 @@ const PlayerModule = {
     hopState: 'idle', // 'idle', 'rising', 'falling'
     hopProgress: 0,
     lastHopTime: 0,
-    hopCooldown: 200, // ms between hops
+    hopCooldown: 150, // Reduced from 200ms to 150ms for faster hopping
     
     // Mouth animation
     mouthState: 'normal', // 'normal', 'happy'
@@ -291,7 +291,9 @@ const PlayerModule = {
     addMouth: function() {
         // Create a group to hold the mouth
         const mouthGroup = new THREE.Group();
-        mouthGroup.position.set(0, 0.81, 0.5);
+        // Position the mouth below the eyes and nose (y=0.82 instead of y=0.81)
+        // and more forward on the face (z=0.52)
+        mouthGroup.position.set(0, 0.82, 0.52); 
         
         // Normal mouth - slight smile
         const normalMouthGeometry = new THREE.BufferGeometry();
@@ -301,17 +303,33 @@ const PlayerModule = {
             new THREE.Vector3(0.06, 0, 0)     // End point
         );
         
-        // Create the points along the curve
-        const normalMouthPoints = normalMouthCurve.getPoints(10);
+        // Create the points along the curve - use more points for smoother curve
+        const normalMouthPoints = normalMouthCurve.getPoints(20);
         normalMouthGeometry.setFromPoints(normalMouthPoints);
         
-        // Create the mouth line
-        const mouthMaterial = new THREE.LineBasicMaterial({ color: 0x444444 });
+        // Create the mouth line with thicker, more visible material
+        const mouthMaterial = new THREE.LineBasicMaterial({ 
+            color: 0x000000, // Use black for better visibility
+            linewidth: 3 // Note: linewidth only works in some browsers/GPUs
+        });
         const normalMouth = new THREE.Line(normalMouthGeometry, mouthMaterial);
         
         // Store reference to the normal mouth
         normalMouth.visible = true;
         mouthGroup.add(normalMouth);
+        
+        // Add a tube geometry version of the mouth for better visibility
+        const normalMouthTubeGeometry = new THREE.TubeGeometry(
+            normalMouthCurve,
+            20,  // tubularSegments
+            0.01, // radius - small but visible
+            8,   // radiusSegments
+            false // closed
+        );
+        const tubeMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
+        const normalMouthTube = new THREE.Mesh(normalMouthTubeGeometry, tubeMaterial);
+        normalMouthTube.visible = true;
+        mouthGroup.add(normalMouthTube);
         
         // Happy mouth - big smile shape
         const happyMouthGeometry = new THREE.BufferGeometry();
@@ -321,15 +339,31 @@ const PlayerModule = {
             new THREE.Vector3(0.08, 0, 0)     // End point
         );
         
-        // Create the points along the curve
-        const happyMouthPoints = happyMouthCurve.getPoints(15);
+        // Create the points along the curve - use more points for smoother curve
+        const happyMouthPoints = happyMouthCurve.getPoints(20);
         happyMouthGeometry.setFromPoints(happyMouthPoints);
         
-        // Create the happy mouth line
-        const happyMouthMaterial = new THREE.LineBasicMaterial({ color: 0x222222, linewidth: 2 });
+        // Create the happy mouth line with thicker material
+        const happyMouthMaterial = new THREE.LineBasicMaterial({ 
+            color: 0x000000, // Use black for better visibility
+            linewidth: 3
+        });
         const happyMouth = new THREE.Line(happyMouthGeometry, happyMouthMaterial);
         
-        // Initially hidden
+        // Add a tube geometry version of the happy mouth
+        const happyMouthTubeGeometry = new THREE.TubeGeometry(
+            happyMouthCurve,
+            20,  // tubularSegments
+            0.01, // radius - small but visible
+            8,   // radiusSegments
+            false // closed
+        );
+        const happyTubeMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
+        const happyMouthTube = new THREE.Mesh(happyMouthTubeGeometry, happyTubeMaterial);
+        happyMouthTube.visible = false;
+        mouthGroup.add(happyMouthTube);
+        
+        // Initially hide happy mouth
         happyMouth.visible = false;
         mouthGroup.add(happyMouth);
         
@@ -337,18 +371,27 @@ const PlayerModule = {
         this.mouthGroup = mouthGroup;
         this.normalMouth = normalMouth;
         this.happyMouth = happyMouth;
+        this.normalMouthTube = normalMouthTube;
+        this.happyMouthTube = happyMouthTube;
         
-        // Add mouth to rabbit
+        // Add mouth directly to the player instead of trying to attach to the head
+        // This gives more direct control over the precise position
         this.player.add(mouthGroup);
+        console.log("Mouth added to rabbit");
     },
     
     // Make the rabbit happy - new function
     showHappyMouth: function() {
         if (this.mouthGroup) {
+            console.log("Showing happy mouth");
             this.mouthState = 'happy';
             this.normalMouth.visible = false;
+            this.normalMouthTube.visible = false;
             this.happyMouth.visible = true;
+            this.happyMouthTube.visible = true;
             this.happyMouthTimer = 60; // Show happy mouth for about 2 seconds (assuming 30fps)
+        } else {
+            console.warn("Cannot show happy mouth - mouthGroup is missing");
         }
     },
     
@@ -357,7 +400,9 @@ const PlayerModule = {
         if (this.mouthGroup) {
             this.mouthState = 'normal';
             this.normalMouth.visible = true;
+            this.normalMouthTube.visible = true;
             this.happyMouth.visible = false;
+            this.happyMouthTube.visible = false;
         }
     },
     
@@ -533,7 +578,7 @@ const PlayerModule = {
         // Don't move if game is over, level is completed, or timer isn't active
         if (CONFIG.isGameOver || CONFIG.isLevelCompleted || !CONFIG.timerActive) return;
         
-        const moveSpeed = 0.1;
+        const moveSpeed = 0.15; // Increased from 0.1 to 0.15 for faster movement
         let newX = this.playerPosition.x;
         let newZ = this.playerPosition.z;
         let moved = false;
@@ -877,8 +922,26 @@ const PlayerModule = {
         // Add the egg to the rabbit
         this.player.add(eggCopy);
         
-        // Show happy expression
-        this.showHappyMouth();
+        // Fix to ensure mouth is visible - make sure we're handling the mouth correctly
+        if (this.mouthGroup && this.normalMouth && this.happyMouth) {
+            // Show happy mouth (line and tube versions)
+            this.normalMouth.visible = false;
+            this.normalMouthTube.visible = false;
+            this.happyMouth.visible = true;
+            this.happyMouthTube.visible = true;
+            this.mouthState = 'happy';
+            this.happyMouthTimer = 60; // Show happy mouth for about 2 seconds
+            
+            console.log("Happy mouth displayed when collecting egg");
+        } else {
+            console.warn("Mouth references missing:", {
+                mouthGroup: !!this.mouthGroup,
+                normalMouth: !!this.normalMouth,
+                happyMouth: !!this.happyMouth,
+                normalMouthTube: !!this.normalMouthTube,
+                happyMouthTube: !!this.happyMouthTube
+            });
+        }
         
         // Animate the egg floating up and disappearing
         let animationFrame = 0;
