@@ -14,11 +14,19 @@ body {
     background-color: rgba(255, 255, 255, 0.7);
     border-radius: 5px;
     z-index: 100;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 h1 {
     margin-top: 0;
+    margin-bottom: 5px;
     color: #8B4513;
+}
+
+.desktop-only, .mobile-only {
+    margin: 5px 0;
 }
 
 #score {
@@ -166,16 +174,54 @@ h1 {
 /* Responsive layout */
 @media screen and (max-width: 768px) {
     #info {
-        max-width: 90%;
+        top: 0;
+        left: 0;
+        width: 100%;
+        padding: 5px;
+        box-sizing: border-box;
+        border-radius: 0;
+        background-color: rgba(255, 255, 255, 0.85);
         font-size: 0.9em;
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        grid-template-rows: auto auto;
+        grid-template-areas:
+            "title title title"
+            "score level timer";
+        gap: 2px;
+        box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
     }
     
-    h1 {
-        font-size: 1.5em;
+    #info h1 {
+        grid-area: title;
+        font-size: 1.2em;
+        text-align: center;
+        margin: 0 0 2px 0;
     }
     
     .mobile-only {
-        display: block;
+        display: none;
+    }
+    
+    #score {
+        grid-area: score;
+        margin: 0;
+        font-size: 0.85em;
+        text-align: left;
+    }
+    
+    #level-info {
+        grid-area: level;
+        margin: 0;
+        font-size: 0.85em;
+        text-align: center;
+    }
+    
+    #timer {
+        grid-area: timer;
+        margin: 0;
+        font-size: 0.85em;
+        text-align: right;
     }
     
     .desktop-only {
