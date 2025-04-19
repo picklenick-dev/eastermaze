@@ -14,6 +14,10 @@ export const CONFIG = {
     isGameOver: false,
     isLevelCompleted: false,
     
+    // Player lives system
+    playerLives: 3,
+    maxPlayerLives: 3,
+    
     // Krokodille-relaterte variabler
     retryAvailable: true,
     currentLevelRetried: false,

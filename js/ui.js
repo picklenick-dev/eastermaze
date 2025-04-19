@@ -12,6 +12,21 @@ export const UIModule = {
         document.getElementById('currentLevel').textContent = `${CONFIG.currentLevel} av ${CONFIG.totalLevels}`;
     },
     
+    // Oppdaterer hjertedisplay (liv)
+    updateLivesDisplay: function() {
+        const heartsContainer = document.getElementById('hearts-container');
+        const hearts = '❤️'.repeat(CONFIG.playerLives) + '🖤'.repeat(CONFIG.maxPlayerLives - CONFIG.playerLives);
+        heartsContainer.textContent = hearts;
+        
+        // Legg til animasjon hvis spilleren mistet et liv nylig
+        if (CONFIG.playerLives < CONFIG.maxPlayerLives) {
+            heartsContainer.classList.add('pulse');
+            setTimeout(() => {
+                heartsContainer.classList.remove('pulse');
+            }, 1000);
+        }
+    },
+    
     // Oppdaterer timer-visningen
     updateTimerDisplay: function(seconds) {
         const minutes = Math.floor(seconds / 60);
@@ -174,6 +189,30 @@ export const UIModule = {
             this.removeMessages();
             // Start timeren når brukeren klikker på Start-knappen
             GameModule.startTimer();
+        });
+    },
+    
+    // Oppretter og viser melding når spilleren har mistet alle liv
+    showNoLivesMessage: function() {
+        // Fjern eventuelle eksisterende meldinger
+        this.removeMessages();
+        
+        const noLivesDiv = document.createElement('div');
+        noLivesDiv.id = 'no-lives-message';
+        noLivesDiv.className = 'message-overlay';
+        noLivesDiv.innerHTML = `
+            <div class="message-content">
+                <h2>Ingen liv igjen!</h2>
+                <p>Å nei! Kaninen har blitt spist av krokodillene for mange ganger.</p>
+                <p>Du har ikke flere liv igjen og må starte på nytt.</p>
+                <button id="restart-game-btn">Start på nytt</button>
+            </div>
+        `;
+        document.body.appendChild(noLivesDiv);
+        
+        document.getElementById('restart-game-btn').addEventListener('click', () => {
+            this.removeMessages();
+            GameModule.resetGame();
         });
     },
     

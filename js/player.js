@@ -1059,6 +1059,130 @@ const PlayerModule = {
         // Also clean up any sparkle particles
         this.cleanupSparkles();
     },
+
+    // Resets player to the starting position of the current level
+    resetToStartPosition: function() {
+        const currentLevel = LEVELS[CONFIG.currentLevel - 1];
+        const mazeDesign = currentLevel.mazeDesign;
+        
+        // Find the starting position (marked as 2 in the maze design)
+        for (let i = 0; i < mazeDesign.length; i++) {
+            for (let j = 0; j < mazeDesign[i].length; j++) {
+                if (mazeDesign[i][j] === 2) {
+                    this.playerPosition = { x: j, z: i };
+                    break;
+                }
+            }
+        }
+        
+        // Update player's position
+        const mazeSize = mazeDesign.length;
+        this.player.position.set(
+            this.playerPosition.x * 2 - mazeSize, 
+            0, 
+            this.playerPosition.z * 2 - mazeSize
+        );
+        
+        // Make the player briefly flash to indicate damage
+        this.flashPlayer();
+        
+        // Update camera position
+        this.updateCameraPosition();
+    },
+    
+    // Gives the player temporary immunity after being hit by a crocodile
+    giveTemporaryImmunity: function() {
+        // Flag to track immunity
+        this.isImmune = true;
+        
+        // Start of immunity time
+        this.immunityStartTime = Date.now();
+        this.immunityDuration = 3000; // 3 seconds of immunity
+        
+        // Set up continuous blinking during immunity
+        this.startImmunityBlink();
+        
+        // Remove immunity after the duration
+        setTimeout(() => {
+            this.isImmune = false;
+            
+            // Stop the blinking animation
+            if (this.immunityBlinkInterval) {
+                clearInterval(this.immunityBlinkInterval);
+                this.immunityBlinkInterval = null;
+            }
+            
+            // Ensure player is fully visible when immunity ends
+            if (this.player) {
+                this.player.visible = true;
+                
+                // Reset any material changes
+                this.player.children.forEach(child => {
+                    if (child.material && child.material.transparent) {
+                        child.material.transparent = false;
+                        child.material.opacity = 1.0;
+                    }
+                });
+            }
+        }, this.immunityDuration);
+    },
+    
+    // Creates a continuous blinking effect during immunity period
+    startImmunityBlink: function() {
+        // Clear any existing interval
+        if (this.immunityBlinkInterval) {
+            clearInterval(this.immunityBlinkInterval);
+        }
+        
+        // How often to toggle visibility (milliseconds)
+        const blinkSpeed = 100;
+        
+        // Start the blinking effect
+        this.immunityBlinkInterval = setInterval(() => {
+            if (this.player) {
+                // Toggle visibility for blinking effect
+                this.player.visible = !this.player.visible;
+                
+                // Add a subtle glow effect when visible
+                if (this.player.visible && this.glowEffect) {
+                    // Make glow more intense and change color during immunity
+                    this.glowEffect.material.color.setHex(0xFFD700); // Gold color
+                    this.glowEffect.material.opacity = 0.6;
+                    this.glowEffect.scale.set(1.5, 1.5, 1.5);
+                }
+            }
+        }, blinkSpeed);
+    },
+
+    // Makes the player flash briefly when damaged
+    flashPlayer: function() {
+        if (!this.player) return;
+        
+        // Number of flashes
+        const flashCount = 4;
+        let flashesRemaining = flashCount;
+        
+        // Flash interval (milliseconds)
+        const flashInterval = 150;
+        
+        // Function to toggle visibility
+        const toggleVisibility = () => {
+            // Toggle visibility
+            this.player.visible = !this.player.visible;
+            flashesRemaining--;
+            
+            // Continue flashing if there are flashes remaining
+            if (flashesRemaining > 0) {
+                setTimeout(toggleVisibility, flashInterval);
+            } else {
+                // Ensure player is visible when done
+                this.player.visible = true;
+            }
+        };
+        
+        // Start flashing
+        toggleVisibility();
+    },
 };
 
 export { PlayerModule };

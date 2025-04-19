@@ -738,6 +738,11 @@ export const CrocodileModule = {
             return;
         }
         
+        // Hvis spilleren er immun, ikke sjekk kollisjon
+        if (PlayerModule.isImmune) {
+            return;
+        }
+        
         // Beregn avstand mellom krokodille og spiller
         const distance = Math.sqrt(
             Math.pow(crocodile.userData.gridX - playerPosition.x, 2) + 
@@ -749,15 +754,32 @@ export const CrocodileModule = {
             // Spill krokodille-bit lyd
             SoundModule.playCrocodileBite();
             
-            // Vis dødsmeldingen
-            UIModule.showCrocodileDeathMessage();
+            // Reduser spillerens liv
+            CONFIG.playerLives--;
             
-            // Sett spilltilstand
-            CONFIG.isGameOver = true;
-            CONFIG.timerActive = false;
+            // Oppdater hjertedisplayet
+            UIModule.updateLivesDisplay();
             
-            // Animer at krokodillen spiser spilleren
-            this.animateEatingPlayer(crocodile);
+            // Hvis spilleren har mistet alle liv
+            if (CONFIG.playerLives <= 0) {
+              
+    
+                // Sett spilltilstand
+                CONFIG.isGameOver = true;
+                CONFIG.timerActive = false;
+                
+                // Animer at krokodillen spiser spilleren
+                this.animateEatingPlayer(crocodile);
+
+                setTimeout(function() {
+                    // Vis melding om at spilleren har mistet alle liv
+                    UIModule.showNoLivesMessage();
+                }, 1500);
+            } else {
+                // Gi midlertidig immunitet mot krokodiller
+                PlayerModule.giveTemporaryImmunity();
+                // We don't call flashPlayer here anymore because the immunity blink handles this
+            }
         }
     },
     

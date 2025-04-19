@@ -54,6 +54,7 @@ export const GameModule = {
         
         // Oppdater UI
         UIModule.updateScoreDisplay();
+        UIModule.updateLivesDisplay();
         
         // Reset tilstanden
         CONFIG.isLevelCompleted = false;
@@ -167,6 +168,8 @@ export const GameModule = {
         CONFIG.isGameOver = false;
         CONFIG.isLevelCompleted = false;
         CONFIG.timerActive = false;
+        CONFIG.playerLives = CONFIG.maxPlayerLives; // Reset player lives
+        CONFIG.currentLevelRetried = false;
         
         // Last inn første nivå
         this.loadLevel();
@@ -195,6 +198,7 @@ export const GameModule = {
         CONFIG.isGameOver = false;
         CONFIG.isLevelCompleted = false;
         CONFIG.timerActive = false;
+        CONFIG.playerLives = CONFIG.maxPlayerLives; // Reset player lives when retrying level
         
         // Last inn nivået på nytt
         this.loadLevel();
