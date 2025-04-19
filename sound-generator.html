@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Easter Labyrinth Sound Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        button {
+            margin: 10px;
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .sound-item {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        h1 {
+            color: #2e7d32;
+        }
+        .instructions {
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-left: 5px solid #4CAF50;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Easter Labyrinth Sound Generator</h1>
+    
+    <div class="instructions">
+        <h3>Instructions:</h3>
+        <p>This page generates sound effects for your Easter Labyrinth game. Click each button to generate and download the corresponding sound file.</p>
+        <p>After generating all sounds, place them in your game's <code>sounds/</code> folder.</p>
+    </div>
+    
+    <div class="sound-item">
+        <h3>Game Start Sound</h3>
+        <p>A cheerful sound to indicate the game is starting</p>
+        <button id="generate-game-start">Generate Game Start Sound</button>
+        <button id="play-game-start" disabled>Play</button>
+        <button id="download-game-start" disabled>Download</button>
+    </div>
+    
+    <div class="sound-item">
+        <h3>Hop Sound</h3>
+        <p>A quick bounce sound for the player hopping</p>
+        <button id="generate-hop">Generate Hop Sound</button>
+        <button id="play-hop" disabled>Play</button>
+        <button id="download-hop" disabled>Download</button>
+    </div>
+    
+    <div class="sound-item">
+        <h3>Collect Egg Sound</h3>
+        <p>A happy collection sound for picking up an Easter egg</p>
+        <button id="generate-collect-egg">Generate Collect Egg Sound</button>
+        <button id="play-collect-egg" disabled>Play</button>
+        <button id="download-collect-egg" disabled>Download</button>
+    </div>
+    
+    <div class="sound-item">
+        <h3>Level Complete Sound</h3>
+        <p>A triumphant sound for completing a level</p>
+        <button id="generate-level-complete">Generate Level Complete Sound</button>
+        <button id="play-level-complete" disabled>Play</button>
+        <button id="download-level-complete" disabled>Download</button>
+    </div>
+    
+    <div class="sound-item">
+        <h3>Game Complete Sound</h3>
+        <p>A celebratory sound for beating the entire game</p>
+        <button id="generate-game-complete">Generate Game Complete Sound</button>
+        <button id="play-game-complete" disabled>Play</button>
+        <button id="download-game-complete" disabled>Download</button>
+    </div>
+
+    <script>
+        // Initialize audio context
+        let audioContext;
+        try {
+            window.AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioContext = new AudioContext();
+        } catch (e) {
+            alert('Web Audio API is not supported in this browser');
+        }
+        
+        // Sound buffers to store generated sounds
+        const soundBuffers = {
+            'game-start': null,
+            'hop': null,
+            'collect-egg': null,
+            'level-complete': null,
+            'game-complete': null
+        };
+        
+        // Generate a game start sound (cheerful ascending notes)
+        document.getElementById('generate-game-start').addEventListener('click', function() {
+            const duration = 1.5;
+            const buffer = audioContext.createBuffer(2, duration * audioContext.sampleRate, audioContext.sampleRate);
+            
+            for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+                const data = buffer.getChannelData(channel);
+                
+                // Create cheerful ascending notes
+                for (let i = 0; i < buffer.length; i++) {
+                    const t = i / audioContext.sampleRate;
+                    
+                    // Three ascending notes
+                    const note1 = Math.sin(2 * Math.PI * 440 * t) * Math.exp(-3 * t);
+                    const note2 = t > 0.3 ? Math.sin(2 * Math.PI * 523.25 * (t - 0.3)) * Math.exp(-3 * (t - 0.3)) : 0;
+                    const note3 = t > 0.6 ? Math.sin(2 * Math.PI * 659.25 * (t - 0.6)) * Math.exp(-3 * (t - 0.6)) : 0;
+                    const note4 = t > 0.9 ? Math.sin(2 * Math.PI * 783.99 * (t - 0.9)) * Math.exp(-3 * (t - 0.9)) : 0;
+                    
+                    // Combine the notes
+                    data[i] = 0.3 * (note1 + note2 + note3 + note4);
+                }
+            }
+            
+            soundBuffers['game-start'] = buffer;
+            enableButtons('game-start');
+        });
+        
+        // Generate a hop sound (quick bounce)
+        document.getElementById('generate-hop').addEventListener('click', function() {
+            const duration = 0.2;
+            const buffer = audioContext.createBuffer(2, duration * audioContext.sampleRate, audioContext.sampleRate);
+            
+            for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+                const data = buffer.getChannelData(channel);
+                
+                // Create a quick bounce sound
+                for (let i = 0; i < buffer.length; i++) {
+                    const t = i / audioContext.sampleRate;
+                    
+                    // Frequency drop (like a bounce)
+                    const freq = 600 - 300 * t / duration;
+                    const bounce = Math.sin(2 * Math.PI * freq * t);
+                    
+                    // Apply envelope
+                    const envelope = Math.exp(-15 * t);
+                    
+                    data[i] = 0.5 * bounce * envelope;
+                }
+            }
+            
+            soundBuffers['hop'] = buffer;
+            enableButtons('hop');
+        });
+        
+        // Generate a collect egg sound (happy chime)
+        document.getElementById('generate-collect-egg').addEventListener('click', function() {
+            const duration = 0.5;
+            const buffer = audioContext.createBuffer(2, duration * audioContext.sampleRate, audioContext.sampleRate);
+            
+            for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+                const data = buffer.getChannelData(channel);
+                
+                // Create a happy collection sound
+                for (let i = 0; i < buffer.length; i++) {
+                    const t = i / audioContext.sampleRate;
+                    
+                    // Two-note chime
+                    const note1 = Math.sin(2 * Math.PI * 880 * t);
+                    const note2 = Math.sin(2 * Math.PI * 1109 * t);
+                    
+                    // Apply envelope
+                    const envelope = Math.exp(-6 * t);
+                    
+                    data[i] = 0.3 * (note1 + note2) * envelope;
+                }
+            }
+            
+            soundBuffers['collect-egg'] = buffer;
+            enableButtons('collect-egg');
+        });
+        
+        // Generate a level complete sound (triumphant jingle)
+        document.getElementById('generate-level-complete').addEventListener('click', function() {
+            const duration = 1.8;
+            const buffer = audioContext.createBuffer(2, duration * audioContext.sampleRate, audioContext.sampleRate);
+            
+            for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+                const data = buffer.getChannelData(channel);
+                
+                // Create a triumphant jingle
+                for (let i = 0; i < buffer.length; i++) {
+                    const t = i / audioContext.sampleRate;
+                    
+                    // Sequence of notes for a level complete fanfare
+                    const note1 = t < 0.3 ? Math.sin(2 * Math.PI * 440 * t) * Math.exp(-3 * t) : 0;
+                    const note2 = (t > 0.3 && t < 0.6) ? Math.sin(2 * Math.PI * 523.25 * (t - 0.3)) * Math.exp(-3 * (t - 0.3)) : 0;
+                    const note3 = (t > 0.6 && t < 0.9) ? Math.sin(2 * Math.PI * 659.25 * (t - 0.6)) * Math.exp(-3 * (t - 0.6)) : 0;
+                    const finalChord1 = t > 0.9 ? Math.sin(2 * Math.PI * 523.25 * (t - 0.9)) * Math.exp(-1 * (t - 0.9)) : 0;
+                    const finalChord2 = t > 0.9 ? Math.sin(2 * Math.PI * 659.25 * (t - 0.9)) * Math.exp(-1 * (t - 0.9)) : 0;
+                    const finalChord3 = t > 0.9 ? Math.sin(2 * Math.PI * 783.99 * (t - 0.9)) * Math.exp(-1 * (t - 0.9)) : 0;
+                    
+                    // Combine the notes
+                    data[i] = 0.3 * (note1 + note2 + note3 + finalChord1 + finalChord2 + finalChord3);
+                }
+            }
+            
+            soundBuffers['level-complete'] = buffer;
+            enableButtons('level-complete');
+        });
+        
+        // Generate a game complete sound (celebratory fanfare)
+        document.getElementById('generate-game-complete').addEventListener('click', function() {
+            const duration = 3.0;
+            const buffer = audioContext.createBuffer(2, duration * audioContext.sampleRate, audioContext.sampleRate);
+            
+            for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+                const data = buffer.getChannelData(channel);
+                
+                // Create a celebratory fanfare
+                for (let i = 0; i < buffer.length; i++) {
+                    const t = i / audioContext.sampleRate;
+                    
+                    // Grand finale sequence
+                    const note1 = t < 0.4 ? Math.sin(2 * Math.PI * 523.25 * t) * (1 - t/0.4) : 0;
+                    const note2 = (t > 0.4 && t < 0.8) ? Math.sin(2 * Math.PI * 659.25 * (t - 0.4)) * (1 - (t-0.4)/0.4) : 0;
+                    const note3 = (t > 0.8 && t < 1.2) ? Math.sin(2 * Math.PI * 783.99 * (t - 0.8)) * (1 - (t-0.8)/0.4) : 0;
+                    
+                    // Triumphant chord
+                    const chord1 = t > 1.2 ? Math.sin(2 * Math.PI * 523.25 * (t - 1.2)) * Math.exp(-0.5 * (t - 1.2)) : 0;
+                    const chord2 = t > 1.2 ? Math.sin(2 * Math.PI * 659.25 * (t - 1.2)) * Math.exp(-0.5 * (t - 1.2)) : 0;
+                    const chord3 = t > 1.2 ? Math.sin(2 * Math.PI * 783.99 * (t - 1.2)) * Math.exp(-0.5 * (t - 1.2)) : 0;
+                    const chord4 = t > 1.2 ? Math.sin(2 * Math.PI * 1046.50 * (t - 1.2)) * Math.exp(-0.5 * (t - 1.2)) : 0;
+                    
+                    // Add some sparkle (high frequencies)
+                    const sparkle = t > 1.2 ? 0.1 * Math.sin(2 * Math.PI * 2093 * (t - 1.2)) * Math.exp(-2 * (t - 1.2)) : 0;
+                    
+                    // Combine everything
+                    data[i] = 0.2 * (note1 + note2 + note3 + chord1 + chord2 + chord3 + chord4 + sparkle);
+                }
+            }
+            
+            soundBuffers['game-complete'] = buffer;
+            enableButtons('game-complete');
+        });
+        
+        // Enable the play and download buttons after generating a sound
+        function enableButtons(soundName) {
+            document.getElementById(`play-${soundName}`).disabled = false;
+            document.getElementById(`download-${soundName}`).disabled = false;
+            
+            // Add play event listener
+            document.getElementById(`play-${soundName}`).addEventListener('click', function() {
+                playSound(soundName);
+            });
+            
+            // Add download event listener
+            document.getElementById(`download-${soundName}`).addEventListener('click', function() {
+                downloadSound(soundName);
+            });
+        }
+        
+        // Play a generated sound
+        function playSound(soundName) {
+            const source = audioContext.createBufferSource();
+            source.buffer = soundBuffers[soundName];
+            source.connect(audioContext.destination);
+            source.start(0);
+        }
+        
+        // Convert AudioBuffer to WAV format
+        function bufferToWave(buffer, len) {
+            const numOfChan = buffer.numberOfChannels;
+            const length = len * numOfChan * 2 + 44;
+            const data = new Uint8Array(length);
+            const view = new DataView(data.buffer);
+            
+            // Write WAV header
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, length - 8, true);
+            writeString(view, 8, 'WAVE');
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, numOfChan, true);
+            view.setUint32(24, buffer.sampleRate, true);
+            view.setUint32(28, buffer.sampleRate * 2 * numOfChan, true);
+            view.setUint16(32, numOfChan * 2, true);
+            view.setUint16(34, 16, true);
+            writeString(view, 36, 'data');
+            view.setUint32(40, length - 44, true);
+            
+            // Write audio data
+            const offset = 44;
+            const soundData = new Float32Array(buffer.length * numOfChan);
+            let index = 0;
+            
+            for (let i = 0; i < buffer.length; i++) {
+                for (let channel = 0; channel < numOfChan; channel++) {
+                    soundData[index++] = buffer.getChannelData(channel)[i];
+                }
+            }
+            
+            // Convert float to 16-bit PCM
+            index = 0;
+            for (let i = 0; i < soundData.length; i++) {
+                const s = Math.max(-1, Math.min(1, soundData[i]));
+                view.setInt16(offset + index, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+                index += 2;
+            }
+            
+            return data;
+        }
+        
+        // Write a string to a DataView
+        function writeString(view, offset, string) {
+            for (let i = 0; i < string.length; i++) {
+                view.setUint8(offset + i, string.charCodeAt(i));
+            }
+        }
+        
+        // Download a generated sound as MP3
+        function downloadSound(soundName) {
+            // Convert to WAV
+            const audioData = bufferToWave(soundBuffers[soundName], soundBuffers[soundName].length);
+            
+            // Create blob and download
+            const blob = new Blob([audioData], { type: 'audio/wav' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${soundName}.mp3`;
+            a.click();
+            
+            setTimeout(() => {
+                URL.revokeObjectURL(url);
+            }, 100);
+        }
+    </script>
+</body>
+</html>
