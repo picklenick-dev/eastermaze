@@ -39,7 +39,7 @@ export const CONFIG = {
     maxCombo: 0,
     comboMultiplier: 1,
     lastEggTime: 0,
-    comboTimeWindow: 5000, // 5 seconds window for combo
+    comboTimeWindow: 8000, // 5 seconds window for combo
     highScores: [],
     playerName: "Anonym kanin",
     
