@@ -863,7 +863,139 @@ const PlayerModule = {
         );
         
         this.updateCameraPosition();
-    }
+    },
+
+    // Makes the rabbit hold an egg over its head
+    holdEggAnimation: function(egg) {
+        // Create a copy of the egg for the rabbit to hold
+        const eggCopy = egg.clone();
+        
+        // Reset position and scale
+        eggCopy.position.set(0, 1.2, 0); // Position above the rabbit's head
+        eggCopy.scale.set(0.6, 0.6, 0.6); // Make it slightly smaller
+        
+        // Add the egg to the rabbit
+        this.player.add(eggCopy);
+        
+        // Show happy expression
+        this.showHappyMouth();
+        
+        // Animate the egg floating up and disappearing
+        let animationFrame = 0;
+        const animateEgg = () => {
+            animationFrame++;
+            
+            if (animationFrame <= 30) { // 30 frames = ~1 second at 30fps
+                // Float up slightly
+                eggCopy.position.y += 0.01;
+                // Spin
+                eggCopy.rotation.y += 0.1;
+                
+                requestAnimationFrame(animateEgg);
+            } else {
+                // Start disappearing animation
+                let fadeFrame = 0;
+                const fadeEgg = () => {
+                    fadeFrame++;
+                    
+                    if (fadeFrame <= 20) {
+                        // Scale down and fade out
+                        eggCopy.scale.multiplyScalar(0.9);
+                        
+                        // Create sparkle particles
+                        if (fadeFrame % 3 === 0) {
+                            this.createSparkleParticle(eggCopy.position);
+                        }
+                        
+                        requestAnimationFrame(fadeEgg);
+                    } else {
+                        // Remove the egg from the rabbit
+                        this.player.remove(eggCopy);
+                    }
+                };
+                
+                fadeEgg();
+            }
+        };
+        
+        animateEgg();
+    },
+    
+    // Creates a sparkle particle effect
+    createSparkleParticle: function(position) {
+        // Create a sparkle particle
+        const sparkleGeometry = new THREE.SphereGeometry(0.05, 8, 8);
+        const sparkleMaterial = new THREE.MeshBasicMaterial({
+            color: Math.random() > 0.5 ? 0xFFFFFF : 0xFFD700, // White or gold
+            transparent: true,
+            opacity: 1
+        });
+        
+        const sparkle = new THREE.Mesh(sparkleGeometry, sparkleMaterial);
+        
+        // Set random position around the egg
+        sparkle.position.set(
+            this.player.position.x + position.x + (Math.random() * 0.4 - 0.2),
+            this.player.position.y + position.y + (Math.random() * 0.4 - 0.2),
+            this.player.position.z + position.z + (Math.random() * 0.4 - 0.2)
+        );
+        
+        // Add to scene
+        CONFIG.scene.add(sparkle);
+        
+        // Store all sparkles to ensure cleanup
+        if (!this.sparkleParticles) {
+            this.sparkleParticles = [];
+        }
+        this.sparkleParticles.push(sparkle);
+        
+        // Animate the sparkle
+        let frame = 0;
+        const animateSparkle = () => {
+            frame++;
+            
+            if (frame <= 15) {
+                // Move upward and outward
+                sparkle.position.y += 0.03;
+                sparkle.scale.multiplyScalar(0.9);
+                sparkleMaterial.opacity -= 0.06;
+                
+                requestAnimationFrame(animateSparkle);
+            } else {
+                // Remove when animation is complete
+                CONFIG.scene.remove(sparkle);
+                
+                // Remove from our tracking array
+                const index = this.sparkleParticles.indexOf(sparkle);
+                if (index > -1) {
+                    this.sparkleParticles.splice(index, 1);
+                }
+            }
+        };
+        
+        animateSparkle();
+    },
+    
+    // Cleanup all sparkle particles
+    cleanupSparkles: function() {
+        if (this.sparkleParticles && this.sparkleParticles.length > 0) {
+            this.sparkleParticles.forEach(sparkle => {
+                CONFIG.scene.remove(sparkle);
+            });
+            this.sparkleParticles = [];
+        }
+    },
+
+    // Remove player from scene
+    removePlayer: function() {
+        if (this.player) {
+            CONFIG.scene.remove(this.player);
+            this.player = null;
+        }
+        
+        // Also clean up any sparkle particles
+        this.cleanupSparkles();
+    },
 };
 
 export { PlayerModule };

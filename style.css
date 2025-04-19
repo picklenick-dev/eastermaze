@@ -254,6 +254,29 @@ h1 {
     background-color: #A0522D;
 }
 
+/* Sound option styling */
+.sound-option {
+    margin: 20px 0;
+    font-size: 1.1em;
+    background-color: rgba(255, 255, 255, 0.7);
+    padding: 8px 15px;
+    border-radius: 5px;
+    display: inline-block;
+}
+
+.sound-option label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.sound-option input[type="checkbox"] {
+    margin-right: 8px;
+    width: 18px;
+    height: 18px;
+}
+
 /* For when time is running low */
 .time-warning {
     color: #FF0000 !important; /* Bright red */

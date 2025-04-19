@@ -116,6 +116,10 @@ export const GameModule = {
         // Fjern gamle objekter
         MazeModule.removeMaze();
         EggModule.removeAllEggs();
+        PlayerModule.removePlayer(); // Remove old player from scene
+        
+        // Clean up any remaining sparkle particles
+        PlayerModule.cleanupSparkles();
         
         // Øk nivånummeret
         CONFIG.currentLevel++;
@@ -138,6 +142,10 @@ export const GameModule = {
         // Fjern gamle objekter
         MazeModule.removeMaze();
         EggModule.removeAllEggs();
+        PlayerModule.removePlayer(); // Remove old player from scene
+        
+        // Clean up any remaining sparkle particles
+        PlayerModule.cleanupSparkles();
         
         // Reset variabler
         CONFIG.currentLevel = 1;

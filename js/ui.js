@@ -9,7 +9,7 @@ export const UIModule = {
     updateScoreDisplay: function() {
         document.getElementById('eggsFound').textContent = CONFIG.eggsFound;
         document.getElementById('totalEggs').textContent = CONFIG.totalEggs;
-        document.getElementById('currentLevel').textContent = CONFIG.currentLevel;
+        document.getElementById('currentLevel').textContent = `${CONFIG.currentLevel} av ${CONFIG.totalLevels}`;
     },
     
     // Oppdaterer timer-visningen
@@ -39,12 +39,20 @@ export const UIModule = {
                 <p>Laget av Oliver Grant, Ella Louise og Nicklas</p>
                 <p>Påsken 2025</p>
                 <p class="intro-description">Hjelp kaninen med å finne alle påskeeggene i labyrinten!</p>
+                <div class="sound-option">
+                    <label>
+                        <input type="checkbox" id="sound-toggle" checked>
+                        Spill med lyd
+                    </label>
+                </div>
                 <button id="start-game-btn">Start spillet</button>
             </div>
         `;
         document.body.appendChild(introDiv);
         
         document.getElementById('start-game-btn').addEventListener('click', () => {
+            // Sett lyd-innstillingen basert på checkbox
+            CONFIG.soundEnabled = document.getElementById('sound-toggle').checked;
             this.removeMessages();
             this.showWelcomeMessage();
         });

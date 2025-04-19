@@ -364,11 +364,27 @@ export const EggModule = {
                     // Play egg collection sound
                     SoundModule.playCollectEgg();
                     
-                    // Opprett oppsamlingsanimasjon
-                    this.createCollectionAnimation(egg);
+                    // Store the egg position before removing it
+                    const eggPosition = {
+                        x: egg.position.x,
+                        y: egg.position.y,
+                        z: egg.position.z
+                    };
                     
-                    // Make the rabbit happy when collecting an egg
-                    PlayerModule.showHappyMouth();
+                    // Make the rabbit hold the egg before it disappears
+                    PlayerModule.holdEggAnimation(egg);
+                    
+                    // Immediately make the original egg invisible
+                    egg.visible = false;
+                    
+                    // Create collection animation particles at the original egg position
+                    setTimeout(() => {
+                        // Move egg back to original position for animation
+                        egg.position.set(eggPosition.x, eggPosition.y, eggPosition.z);
+                        
+                        // Create collection animation particles 
+                        this.createCollectionAnimation(egg);
+                    }, 1000);
                     
                     CONFIG.eggsFound++;
                     UIModule.updateScoreDisplay();
