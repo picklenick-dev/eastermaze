@@ -6,6 +6,7 @@ import { PlayerModule } from './player.js';
 import { UIModule } from './ui.js';
 import { GameModule } from './game.js';
 import { SoundModule } from './sound.js';
+import { HighScoreModule } from './highscore.js';
 
 export const EggModule = {
     eggs: [],
@@ -868,6 +869,9 @@ export const EggModule = {
                     // Play egg collection sound
                     SoundModule.playCollectEgg();
                     
+                    // Add points for egg collection with combo
+                    const points = HighScoreModule.addEggPoints();
+                    
                     // Store the egg position before removing it
                     const eggPosition = {
                         x: egg.position.x,
@@ -887,7 +891,7 @@ export const EggModule = {
                         egg.position.set(eggPosition.x, eggPosition.y, eggPosition.z);
                         
                         // Create collection animation particles 
-                        this.createCollectionAnimation(egg);
+                        this.createCollectionAnimation(egg, points);
                     }, 1000);
                     
                     CONFIG.eggsFound++;
@@ -903,7 +907,7 @@ export const EggModule = {
     },
     
     // Opprett en oppsamlingsanimasjon når egget samles
-    createCollectionAnimation: function(egg) {
+    createCollectionAnimation: function(egg, points) {
         // Opprett en 'starburst' effekt
         const burstGeometry = new THREE.BufferGeometry();
         const burstCount = 20;
@@ -948,10 +952,56 @@ export const EggModule = {
         
         egg.add(burst);
         
+        // Add points text that floats upward
+        if (points > 0) {
+            const comboMultiplier = CONFIG.comboMultiplier;
+            const scoreColor = comboMultiplier > 1 ? 0xFFD700 : 0xFFFFFF; // Gold for combo
+            this.createScoreText(egg, points, scoreColor);
+        }
+        
         // Gjør egget usynlig etter en kort forsinkelse
         setTimeout(() => {
             egg.visible = false;
         }, 500);
+    },
+    
+    // Create floating score text when egg is collected
+    createScoreText: function(egg, points, color = 0xFFFFFF) {
+        if (!CONFIG.enhancedGraphics) return; // Skip if not in enhanced mode
+        
+        // Create canvas for the points text
+        const canvas = document.createElement('canvas');
+        canvas.width = 128;
+        canvas.height = 64;
+        const ctx = canvas.getContext('2d');
+        
+        // Draw points text
+        ctx.fillStyle = `rgb(${color >> 16 & 255}, ${color >> 8 & 255}, ${color & 255})`;
+        ctx.font = 'bold 32px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(`+${points}`, canvas.width / 2, canvas.height / 2);
+        
+        // Create sprite with the text
+        const texture = new THREE.CanvasTexture(canvas);
+        const material = new THREE.SpriteMaterial({
+            map: texture,
+            transparent: true,
+            opacity: 1
+        });
+        
+        const sprite = new THREE.Sprite(material);
+        sprite.position.y = 1;
+        sprite.scale.set(1, 0.5, 1);
+        
+        // Add animation data
+        sprite.userData = {
+            age: 0,
+            maxAge: 60,
+            initialY: sprite.position.y
+        };
+        
+        egg.add(sprite);
     },
     
     // Oppdater eggenes rotasjon og effekter

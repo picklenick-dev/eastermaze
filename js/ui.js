@@ -3,6 +3,7 @@
 import { CONFIG } from './config.js';
 import { LEVELS } from './levels.js';
 import { GameModule } from './game.js';
+import { HighScoreModule } from './highscore.js';
 
 export const UIModule = {
     // Oppdaterer poengsummen
@@ -72,7 +73,10 @@ export const UIModule = {
                         Forbedret påskegrafikkk
                     </label>
                 </div>
-                <button id="start-game-btn">Start spillet</button>
+                <div class="button-container">
+                    <button id="start-game-btn">Start spillet</button>
+                    <button id="view-leaderboard-btn" class="secondary-btn">Vis poengtavle</button>
+                </div>
             </div>
         `;
         document.body.appendChild(introDiv);
@@ -84,6 +88,14 @@ export const UIModule = {
             CONFIG.enhancedGraphics = document.getElementById('graphics-toggle').checked;
             this.removeMessages();
             this.showWelcomeMessage();
+        });
+        
+        // Add event listener for the view leaderboard button
+        document.getElementById('view-leaderboard-btn').addEventListener('click', () => {
+            // Load high scores from cloud before showing leaderboard
+            HighScoreModule.loadHighScoresFromCloud().then(() => {
+                HighScoreModule.showLeaderboard();
+            });
         });
     },
     
@@ -99,22 +111,42 @@ export const UIModule = {
             <div class="message-content">
                 <h2>Tiden er ute!</h2>
                 <p>Beklager, du rakk ikke å finne alle påskeeggene i tide.</p>
-                <p>Du må starte helt fra begynnelsen igjen.</p>
+                <div class="score-summary">
+                    <p>Din poengsum:</p>
+                    <div class="bonus-row total"><span>Totalpoeng:</span> <span>${CONFIG.score}</span></div>
+                </div>
+                <button id="save-score-btn">Lagre poengsum</button>
                 <button id="restart-game-btn">Start på nytt</button>
             </div>
         `;
         document.body.appendChild(timeUpDiv);
         
+        document.getElementById('save-score-btn').addEventListener('click', () => {
+            // Disable the button to prevent multiple submissions
+            const saveButton = document.getElementById('save-score-btn');
+            saveButton.disabled = true;
+            saveButton.textContent = 'Lagrer...';
+            
+            // Show input form for the player name
+            HighScoreModule.showLeaderboard(CONFIG.score);
+        });
+        
         document.getElementById('restart-game-btn').addEventListener('click', () => {
             this.removeMessages();
             GameModule.resetGame();
         });
+        
+        // Try to save scores to the cloud
+        HighScoreModule.saveHighScoresToCloud();
     },
     
     // Oppretter og viser melding når nivå er fullført
     showLevelCompletedMessage: function() {
         // Fjern eventuelle eksisterende meldinger
         this.removeMessages();
+        
+        // Calculate bonus points for level completion
+        const bonuses = HighScoreModule.addTimeBonus();
         
         const levelCompletedDiv = document.createElement('div');
         levelCompletedDiv.id = 'level-completed-message';
@@ -123,8 +155,17 @@ export const UIModule = {
             <div class="message-content">
                 <h2>Nivå ${CONFIG.currentLevel} fullført!</h2>
                 <p>Du har funnet alle påskeeggene!</p>
+                <div class="score-summary">
+                    <p>Bonuspoeng:</p>
+                    <div class="bonus-row"><span>Gjenstående tid:</span> <span>+${bonuses.timeBonus}</span></div>
+                    <div class="bonus-row"><span>Gjenværende liv:</span> <span>+${bonuses.lifeBonus}</span></div>
+                    <div class="bonus-row"><span>Maks combo (x${CONFIG.maxCombo}):</span> <span>+${bonuses.comboBonus}</span></div>
+                    <div class="bonus-row total"><span>Total bonuspoeng:</span> <span>+${bonuses.totalBonus}</span></div>
+                </div>
+                <p class="level-score">Nivåpoeng: ${CONFIG.levelScore}</p>
                 <p>${LEVELS[CONFIG.currentLevel].message || ''}</p>
                 <button id="next-level-btn">Neste nivå</button>
+                <button id="show-leaderboard-btn">Vis poengtavle</button>
             </div>
         `;
         document.body.appendChild(levelCompletedDiv);
@@ -133,6 +174,10 @@ export const UIModule = {
             this.removeMessages();
             GameModule.loadNextLevel();
         });
+        
+        document.getElementById('show-leaderboard-btn').addEventListener('click', () => {
+            HighScoreModule.showLeaderboard();
+        });
     },
     
     // Oppretter og viser meldingen når hele spillet er fullført
@@ -140,23 +185,116 @@ export const UIModule = {
         // Fjern eventuelle eksisterende meldinger
         this.removeMessages();
         
+        // Play game completion sound
+        SoundModule.playGameComplete();
+        
+        // Calculate final bonus
+        const finalBonus = CONFIG.currentLevel * 1000; // 1000 points per completed level
+        CONFIG.totalScore += finalBonus;
+        
         const gameCompletedDiv = document.createElement('div');
         gameCompletedDiv.id = 'game-completed-message';
         gameCompletedDiv.className = 'message-overlay';
         gameCompletedDiv.innerHTML = `
             <div class="message-content">
-                <h2>Gratulerer!</h2>
-                <p>Du har fullført alle nivåene og funnet alle påskeeggene!</p>
-                <p>God påske!</p>
+                <h2>Gratulerer! 🎉🥚🎊</h2>
+                <p>Du har fullført alle 10 nivåene og funnet alle påskeeggene!</p>
+                <p>Du er en ekte påskemester!</p>
+                <div class="score-summary">
+                    <p>Din sluttpoengsum:</p>
+                    <div class="bonus-row"><span>Spillpoeng:</span> <span>${CONFIG.totalScore - finalBonus}</span></div>
+                    <div class="bonus-row"><span>Fullført spill bonus:</span> <span>+${finalBonus}</span></div>
+                    <div class="bonus-row total"><span>Totalpoeng:</span> <span>${CONFIG.totalScore}</span></div>
+                </div>
+                <p>Skriv inn navnet ditt for å lagre din poengsum på poengtavlen!</p>
+                <div class="name-input-container">
+                    <input type="text" id="completion-name-input" placeholder="Ditt navn" value="${CONFIG.playerName}" maxlength="24">
+                </div>
+                <p>God påske og takk for at du spilte Påskelabyrinten!</p>
+                <button id="save-score-btn">Lagre poengsum</button>
+                <button id="view-leaderboard-btn">Vis poengtavle</button>
                 <button id="restart-game-btn">Spill igjen</button>
             </div>
         `;
         document.body.appendChild(gameCompletedDiv);
         
+        // Focus on name input
+        setTimeout(() => {
+            const nameInput = document.getElementById('completion-name-input');
+            if (nameInput) nameInput.focus();
+        }, 100);
+        
+        // Save score when button is clicked
+        document.getElementById('save-score-btn').addEventListener('click', () => {
+            // Disable the button to prevent multiple submissions
+            const saveButton = document.getElementById('save-score-btn');
+            saveButton.disabled = true;
+            saveButton.textContent = 'Lagrer...';
+            
+            const nameInput = document.getElementById('completion-name-input');
+            const playerName = nameInput.value.trim() || 'Anonym kanin';
+            
+            // Save the player name for future use
+            HighScoreModule.savePlayerName(playerName);
+            
+            // Add the score and show leaderboard
+            HighScoreModule.addHighScore(playerName, CONFIG.totalScore, CONFIG.currentLevel);
+            
+            // Show a confirmation that the score was saved
+            const messagePara = document.createElement('p');
+            messagePara.className = 'score-saved-message';
+            messagePara.textContent = 'Poengsum lagret!';
+            messagePara.style.color = '#4CAF50';
+            messagePara.style.fontWeight = 'bold';
+            
+            const nameContainer = document.querySelector('.name-input-container');
+            if (nameContainer && !document.querySelector('.score-saved-message')) {
+                nameContainer.insertAdjacentElement('afterend', messagePara);
+            }
+            
+            // Update button text to show completion
+            saveButton.textContent = 'Lagret!';
+            
+            // Also show the leaderboard with the newly added score (passing true to highlight it)
+            setTimeout(() => {
+                HighScoreModule.loadHighScoresFromCloud().then(() => {
+                    HighScoreModule.showLeaderboard(CONFIG.totalScore, true);
+                    
+                    // After a short delay, hide the leaderboard and show the intro screen
+                    setTimeout(() => {
+                        // Hide the leaderboard
+                        document.getElementById('leaderboard').style.display = 'none';
+                        
+                        // Show the intro screen
+                        this.removeMessages();
+                        this.showIntroScreen();
+                    }, 2000); // Show the leaderboard for 2 seconds before returning to the menu
+                });
+            }, 500);
+        });
+        
+        // Handle Enter key in name input
+        document.getElementById('completion-name-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('save-score-btn').click();
+            }
+        });
+        
+        // View leaderboard button
+        document.getElementById('view-leaderboard-btn').addEventListener('click', () => {
+            HighScoreModule.showLeaderboard(CONFIG.totalScore);
+        });
+        
+        // Restart button
         document.getElementById('restart-game-btn').addEventListener('click', () => {
             this.removeMessages();
             GameModule.resetGame();
         });
+        
+        // Try to save scores to the cloud
+        HighScoreModule.saveHighScoresToCloud();
+        
+        CONFIG.isGameOver = true;
     },
     
     // Oppretter og viser velkomstmeldingen for gjeldende nivå
@@ -204,16 +342,35 @@ export const UIModule = {
             <div class="message-content">
                 <h2>Ingen liv igjen!</h2>
                 <p>Å nei! Kaninen har blitt spist av krokodillene for mange ganger.</p>
+                <div class="score-summary">
+                    <p>Din endelige poengsum:</p>
+                    <div class="bonus-row total"><span>Poeng:</span> <span>${CONFIG.score}</span></div>
+                </div>
                 <p>Du har ikke flere liv igjen og må starte på nytt.</p>
+                <button id="save-score-btn">Lagre poengsum</button>
                 <button id="restart-game-btn">Start på nytt</button>
             </div>
         `;
         document.body.appendChild(noLivesDiv);
         
+        // Event listener for saving score
+        document.getElementById('save-score-btn').addEventListener('click', () => {
+            // Disable the button to prevent multiple submissions
+            const saveButton = document.getElementById('save-score-btn');
+            saveButton.disabled = true;
+            saveButton.textContent = 'Lagrer...';
+            
+            // Show input form for the player name
+            HighScoreModule.showLeaderboard(CONFIG.score);
+        });
+        
         document.getElementById('restart-game-btn').addEventListener('click', () => {
             this.removeMessages();
             GameModule.resetGame();
         });
+        
+        // Try to save scores to the cloud
+        HighScoreModule.saveHighScoresToCloud();
     },
     
     // Oppretter og viser melding når spilleren blir spist av en krokodille
@@ -231,8 +388,13 @@ export const UIModule = {
                 <div class="message-content">
                     <h2>Spist av en krokodille!</h2>
                     <p>Å nei! Kaninen ble spist av en av de farlige krokodillene!</p>
+                    <div class="score-summary">
+                        <p>Din poengsum så langt:</p>
+                        <div class="bonus-row total"><span>Poeng:</span> <span>${CONFIG.score}</span></div>
+                    </div>
                     <p>Du har én mulighet til å prøve dette nivået på nytt.</p>
                     <button id="retry-level-btn">Prøv igjen</button>
+                    <button id="save-score-btn">Lagre poengsum</button>
                     <button id="restart-game-btn">Start på nytt</button>
                 </div>
             `;
@@ -241,13 +403,32 @@ export const UIModule = {
                 <div class="message-content">
                     <h2>Spist av en krokodille!</h2>
                     <p>Å nei! Kaninen ble spist av en av de farlige krokodillene!</p>
-                    <p>Vær forsiktig og pass på krokodillene!</p>
+                    <div class="score-summary">
+                        <p>Din endelige poengsum:</p>
+                        <div class="bonus-row total"><span>Poeng:</span> <span>${CONFIG.score}</span></div>
+                    </div>
+                    <p>Vær forsiktig og pass på krokodillene neste gang!</p>
+                    <button id="save-score-btn">Lagre poengsum</button>
                     <button id="restart-game-btn">Start på nytt</button>
                 </div>
             `;
+            
+            // Try to save scores to the cloud when the game is actually over
+            HighScoreModule.saveHighScoresToCloud();
         }
         
         document.body.appendChild(crocodileDeathDiv);
+        
+        // Event listener for saving score
+        document.getElementById('save-score-btn').addEventListener('click', () => {
+            // Disable the button to prevent multiple submissions
+            const saveButton = document.getElementById('save-score-btn');
+            saveButton.disabled = true;
+            saveButton.textContent = 'Lagrer...';
+            
+            // Show input form for the player name
+            HighScoreModule.showLeaderboard(CONFIG.score);
+        });
         
         // Legg til event listener for restart-knapp
         document.getElementById('restart-game-btn').addEventListener('click', () => {

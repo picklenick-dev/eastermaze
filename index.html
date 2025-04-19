@@ -15,6 +15,13 @@
         <p class="desktop-only">Bruk piltastene for å navigere. Finn alle påskeeggene!</p>
         <p class="mobile-only">Bruk joysticken til å navigere. Finn alle påskeeggene!</p>
         <div id="score">Påskeegg funnet: <span id="eggsFound">0</span>/<span id="totalEggs">0</span></div>
+        <div id="points">Poeng: <span id="score-display">0</span></div>
+        <div id="combo-container">
+            <div id="combo">Combo: <span id="combo-display">x1</span></div>
+            <div id="combo-bar-container">
+                <div id="combo-bar"></div>
+            </div>
+        </div>
         <div id="level-info">Nivå <span id="currentLevel">1</span></div>
         <div id="timer">Tid: <span id="timer-display">0:00</span></div>
         <div id="lives">Liv: <span id="hearts-container">❤️❤️❤️</span></div>
@@ -31,6 +38,15 @@
         <h2>Gratulerer!</h2>
         <p>Du har funnet alle påskeeggene!</p>
         <button id="restart-btn">Spill igjen</button>
+    </div>
+    
+    <!-- Leaderboard -->
+    <div id="leaderboard" class="message-overlay" style="display: none;">
+        <div class="message-content">
+            <h2>Poengtavle</h2>
+            <div id="leaderboard-entries"></div>
+            <button id="close-leaderboard-btn">Lukk</button>
+        </div>
     </div>
     
     <!-- Three.js bibliotek -->

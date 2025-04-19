@@ -8,6 +8,7 @@ import { UIModule } from './ui.js';
 import { RendererModule } from './renderer.js';
 import { SoundModule } from './sound.js';
 import { CrocodileModule } from './crocodile.js';
+import { HighScoreModule } from './highscore.js';
 
 export const GameModule = {
     // Initalisering av spillet
@@ -18,17 +19,23 @@ export const GameModule = {
         // Initialiser lyd
         SoundModule.init();
         
-        // Last inn første nivå
-        this.loadLevel();
+        // Initialiser high score system
+        HighScoreModule.init();
         
-        // Sett opp kontroller
-        PlayerModule.setupControls();
-        
-        // Start animasjonsløkken
-        this.animate();
-        
-        // Vis introduksjonsskjerm først
-        UIModule.showIntroScreen();
+        // Try to load high scores from cloud
+        HighScoreModule.loadHighScoresFromCloud().finally(() => {
+            // Last inn første nivå
+            this.loadLevel();
+            
+            // Sett opp kontroller
+            PlayerModule.setupControls();
+            
+            // Start animasjonsløkken
+            this.animate();
+            
+            // Vis introduksjonsskjerm først
+            UIModule.showIntroScreen();
+        });
     },
     
     // Last inn et nivå
@@ -140,6 +147,15 @@ export const GameModule = {
         // Restore player lives to maximum when completing a level
         CONFIG.playerLives = CONFIG.maxPlayerLives;
         
+        // Store the current total score
+        const currentTotalScore = CONFIG.totalScore;
+        
+        // Reset level-specific score variables but keep total score
+        HighScoreModule.resetLevelScore();
+        
+        // Restore the total score
+        CONFIG.totalScore = currentTotalScore;
+        
         // Oppdater UI
         UIModule.updateScoreDisplay();
         
@@ -173,6 +189,13 @@ export const GameModule = {
         CONFIG.timerActive = false;
         CONFIG.playerLives = CONFIG.maxPlayerLives; // Reset player lives
         CONFIG.currentLevelRetried = false;
+        CONFIG.score = 0;
+        CONFIG.totalScore = 0;
+        CONFIG.levelScore = 0;
+        CONFIG.maxCombo = 0;
+        
+        // Reset combo system
+        HighScoreModule.resetLevelScore();
         
         // Last inn første nivå
         this.loadLevel();
@@ -202,6 +225,18 @@ export const GameModule = {
         CONFIG.isLevelCompleted = false;
         CONFIG.timerActive = false;
         CONFIG.playerLives = CONFIG.maxPlayerLives; // Reset player lives when retrying level
+        
+        // Reset the score for this level attempt
+        CONFIG.levelScore = 0;
+        
+        // Store the current total score
+        const currentTotalScore = CONFIG.totalScore;
+        
+        // Reset combo without affecting total score
+        HighScoreModule.resetLevelScore();
+        
+        // Restore the total score
+        CONFIG.totalScore = currentTotalScore;
         
         // Last inn nivået på nytt
         this.loadLevel();

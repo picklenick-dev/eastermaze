@@ -322,6 +322,31 @@ h1 {
     background-color: #A0522D;
 }
 
+/* Button container for intro screen */
+.button-container {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+/* Style for secondary buttons (like leaderboard button) */
+.secondary-btn {
+    background-color: #4A6D8C !important; /* Blue-brown color */
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1.1em;
+    margin-top: 25px;
+    transition: background-color 0.3s;
+}
+
+.secondary-btn:hover {
+    background-color: #5A7D9C !important;
+}
+
 /* Sound option styling */
 .sound-option {
     margin: 20px 0;
@@ -367,6 +392,121 @@ h1 {
     to { opacity: 0.5; }
 }
 
+/* Score and combo system */
+#points {
+    font-weight: bold;
+    color: #FFD700; /* Gold color for score */
+    margin-top: 5px;
+}
+
+#combo-container {
+    margin-top: 5px;
+}
+
+#combo {
+    font-weight: bold;
+    color: #FF6347; /* Tomato color for combo */
+}
+
+#combo-bar-container {
+    width: 100%;
+    height: 4px;
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 2px;
+    margin-top: 3px;
+}
+
+#combo-bar {
+    height: 100%;
+    width: 0%;
+    background-color: #FF6347;
+    border-radius: 2px;
+    transition: width 0.3s;
+}
+
+.combo-flash {
+    animation: combo-pulse 0.5s;
+}
+
+@keyframes combo-pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+/* Leaderboard */
+#leaderboard {
+    z-index: 300;
+}
+
+#leaderboard-entries {
+    max-height: 300px;
+    overflow-y: auto;
+    margin: 15px 0;
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.leaderboard-entry {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+    border-bottom: 1px solid #ddd;
+}
+
+.leaderboard-entry:last-child {
+    border-bottom: none;
+}
+
+.leaderboard-rank {
+    font-weight: bold;
+    width: 30px;
+}
+
+.leaderboard-name {
+    flex: 1;
+    margin: 0 10px;
+    text-align: left;
+}
+
+.leaderboard-score {
+    font-weight: bold;
+    text-align: right;
+}
+
+.highlight-entry {
+    background-color: rgba(255, 215, 0, 0.3);
+    font-weight: bold;
+}
+
+.player-name-form {
+    margin: 15px 0;
+    text-align: center;
+}
+
+.player-name-form input {
+    padding: 8px;
+    font-size: 16px;
+    border: 2px solid #8B4513;
+    border-radius: 5px;
+    margin-right: 10px;
+}
+
+.player-name-form button {
+    background-color: #8B4513;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.player-name-form button:hover {
+    background-color: #A0522D;
+}
+
 /* Responsive tilpasninger for introduksjonsskjermen */
 @media screen and (max-width: 768px) {
     .intro-content {
@@ -385,4 +525,45 @@ h1 {
     .intro-description {
         font-size: 1.1em !important;
     }
+}
+
+/* Score summary */
+.score-summary {
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 5px;
+    padding: 10px;
+    margin: 15px 0;
+    text-align: left;
+}
+
+.score-summary p {
+    font-weight: bold;
+    margin: 0 0 10px 0;
+    text-align: center;
+}
+
+.bonus-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 3px 0;
+    border-bottom: 1px dashed #ddd;
+}
+
+.bonus-row:last-child {
+    border-bottom: none;
+}
+
+.bonus-row.total {
+    margin-top: 5px;
+    padding-top: 5px;
+    border-top: 2px solid #ddd;
+    font-weight: bold;
+    color: #8B4513;
+}
+
+.level-score {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #FFD700;
+    margin: 15px 0;
 }

@@ -30,6 +30,19 @@ export const CONFIG = {
     timerActive: false,
     startTime: null,
     remainingTime: 0,
+    
+    // Poeng og combo-system
+    score: 0,
+    totalScore: 0,
+    levelScore: 0,
+    comboCount: 0,
+    maxCombo: 0,
+    comboMultiplier: 1,
+    lastEggTime: 0,
+    comboTimeWindow: 5000, // 5 seconds window for combo
+    highScores: [],
+    playerName: "Anonym kanin",
+    
     levelTimeLimits: {
         1: 60,  // 60 sekunder for nivå 1
         2: 90,  // 90 sekunder for nivå 2
