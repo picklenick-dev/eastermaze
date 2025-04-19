@@ -7,6 +7,7 @@ import { EggModule } from './eggs.js';
 import { UIModule } from './ui.js';
 import { RendererModule } from './renderer.js';
 import { SoundModule } from './sound.js';
+import { CrocodileModule } from './crocodile.js';
 
 export const GameModule = {
     // Initalisering av spillet
@@ -40,6 +41,14 @@ export const GameModule = {
         
         // Opprette påskeegg
         EggModule.createEggs();
+        
+        // Opprett krokodiller på alle nivåer
+        CrocodileModule.createCrocodiles();
+        
+        // Reset retry status når vi går til nytt nivå
+        if (!CONFIG.currentLevelRetried) {
+            CONFIG.retryAvailable = true;
+        }
         
         // Oppdater UI
         UIModule.updateScoreDisplay();
@@ -117,6 +126,7 @@ export const GameModule = {
         MazeModule.removeMaze();
         EggModule.removeAllEggs();
         PlayerModule.removePlayer(); // Remove old player from scene
+        CrocodileModule.removeAllCrocodiles(); // Fjern alle krokodiller
         
         // Clean up any remaining sparkle particles
         PlayerModule.cleanupSparkles();
@@ -143,6 +153,7 @@ export const GameModule = {
         MazeModule.removeMaze();
         EggModule.removeAllEggs();
         PlayerModule.removePlayer(); // Remove old player from scene
+        CrocodileModule.removeAllCrocodiles(); // Fjern alle krokodiller
         
         // Clean up any remaining sparkle particles
         PlayerModule.cleanupSparkles();
@@ -162,6 +173,37 @@ export const GameModule = {
         UIModule.showIntroScreen();
     },
     
+    // Retry current level (for when eaten by a crocodile)
+    retryCurrentLevel: function() {
+        // Fjern gamle objekter
+        MazeModule.removeMaze();
+        EggModule.removeAllEggs();
+        PlayerModule.removePlayer();
+        CrocodileModule.removeAllCrocodiles();
+        
+        // Clean up any remaining sparkle particles
+        PlayerModule.cleanupSparkles();
+        
+        // Mark that the current level has been retried
+        CONFIG.currentLevelRetried = true;
+        
+        // Reset game state but keep current level
+        CONFIG.eggsFound = 0;
+        CONFIG.totalEggs = 0;
+        CONFIG.isGameOver = false;
+        CONFIG.isLevelCompleted = false;
+        CONFIG.timerActive = false;
+        
+        // Last inn nivået på nytt
+        this.loadLevel();
+        
+        // Vis velkomstmelding for nivået
+        UIModule.showWelcomeMessage();
+        
+        // Spill startlyd
+        SoundModule.playGameStart();
+    },
+    
     // Animasjonsløkke
     animate: function() {
         requestAnimationFrame(() => this.animate());
@@ -174,6 +216,9 @@ export const GameModule = {
         
         // Oppdater eggenes rotasjon
         EggModule.update();
+        
+        // Oppdater krokodillene på alle nivåer
+        CrocodileModule.update();
         
         // Oppdater veggenes synlighet
         MazeModule.updateWallVisibility();

@@ -14,6 +14,10 @@ export const CONFIG = {
     isGameOver: false,
     isLevelCompleted: false,
     
+    // Krokodille-relaterte variabler
+    retryAvailable: true,
+    currentLevelRetried: false,
+    
     // Timer-relaterte variabler
     timerActive: false,
     startTime: null,

@@ -30,7 +30,8 @@ export const SoundModule = {
             'hop': 'sounds/hop.mp3',
             'collectEgg': 'sounds/collect-egg.mp3',
             'levelComplete': 'sounds/level-complete.mp3',
-            'gameComplete': 'sounds/game-complete.mp3'
+            'gameComplete': 'sounds/game-complete.mp3',
+            'crocodileBite': 'sounds/collect-egg.mp3' // Midlertidig bruk egg-lyd for krokodille
         };
         
         // Last inn hver lydfil
@@ -129,5 +130,11 @@ export const SoundModule = {
     // Spill spill-fullført lyd
     playGameComplete: function() {
         return this.play('gameComplete');
+    },
+    
+    // Spill krokodille-bit lyd
+    playCrocodileBite: function() {
+        // Spill med lavere pitch og volum for dyp krokodillelyd
+        return this.play('crocodileBite', { volume: 1.2 });
     }
 };

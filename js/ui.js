@@ -163,6 +163,54 @@ export const UIModule = {
         });
     },
     
+    // Oppretter og viser melding når spilleren blir spist av en krokodille
+    showCrocodileDeathMessage: function() {
+        // Fjern eventuelle eksisterende meldinger
+        this.removeMessages();
+        
+        const crocodileDeathDiv = document.createElement('div');
+        crocodileDeathDiv.id = 'crocodile-death-message';
+        crocodileDeathDiv.className = 'message-overlay';
+        
+        // Sjekk om spilleren har et retry tilgjengelig
+        if (CONFIG.retryAvailable && !CONFIG.currentLevelRetried) {
+            crocodileDeathDiv.innerHTML = `
+                <div class="message-content">
+                    <h2>Spist av en krokodille!</h2>
+                    <p>Å nei! Kaninen ble spist av en av de farlige krokodillene!</p>
+                    <p>Du har én mulighet til å prøve dette nivået på nytt.</p>
+                    <button id="retry-level-btn">Prøv igjen</button>
+                    <button id="restart-game-btn">Start på nytt</button>
+                </div>
+            `;
+        } else {
+            crocodileDeathDiv.innerHTML = `
+                <div class="message-content">
+                    <h2>Spist av en krokodille!</h2>
+                    <p>Å nei! Kaninen ble spist av en av de farlige krokodillene!</p>
+                    <p>Vær forsiktig og pass på krokodillene!</p>
+                    <button id="restart-game-btn">Start på nytt</button>
+                </div>
+            `;
+        }
+        
+        document.body.appendChild(crocodileDeathDiv);
+        
+        // Legg til event listener for restart-knapp
+        document.getElementById('restart-game-btn').addEventListener('click', () => {
+            this.removeMessages();
+            GameModule.resetGame();
+        });
+        
+        // Legg til event listener for retry-knapp hvis tilgjengelig
+        if (CONFIG.retryAvailable && !CONFIG.currentLevelRetried) {
+            document.getElementById('retry-level-btn').addEventListener('click', () => {
+                this.removeMessages();
+                GameModule.retryCurrentLevel();
+            });
+        }
+    },
+    
     // Fjerner alle meldinger fra DOM
     removeMessages: function() {
         const messages = document.querySelectorAll('.message-overlay');

@@ -578,7 +578,7 @@ const PlayerModule = {
         // Don't move if game is over, level is completed, or timer isn't active
         if (CONFIG.isGameOver || CONFIG.isLevelCompleted || !CONFIG.timerActive) return;
         
-        const moveSpeed = 0.15; // Increased from 0.1 to 0.15 for faster movement
+        const moveSpeed = 0.10; // Reduced from 0.15 to 0.08 for slower movement
         let newX = this.playerPosition.x;
         let newZ = this.playerPosition.z;
         let moved = false;
