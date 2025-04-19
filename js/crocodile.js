@@ -614,6 +614,20 @@ export const CrocodileModule = {
     checkCrocodileProximity: function(newX, newZ, currentCrocodile) {
         const MIN_DISTANCE = 2.0; // Minimum allowed distance between crocodiles
         
+        // Check if this is the only valid move available
+        // Adding special handling for when the crocodile has no other valid moves
+        if (currentCrocodile.userData.hasOwnProperty('stuckCount')) {
+            currentCrocodile.userData.stuckCount++;
+        } else {
+            currentCrocodile.userData.stuckCount = 1;
+        }
+        
+        // If crocodile has been stuck for several attempts, allow it to move even if close to other crocodiles
+        if (currentCrocodile.userData.stuckCount > 5) {
+            currentCrocodile.userData.stuckCount = 0; // Reset counter
+            return false; // Ignore proximity, allow movement
+        }
+        
         for (const crocodile of this.crocodiles) {
             // Skip checking against itself
             if (crocodile === currentCrocodile) continue;
@@ -630,7 +644,8 @@ export const CrocodileModule = {
             }
         }
         
-        // No proximity issues found
+        // No proximity issues found, reset stuck counter
+        currentCrocodile.userData.stuckCount = 0;
         return false;
     },
     
