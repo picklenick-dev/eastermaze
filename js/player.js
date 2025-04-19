@@ -578,7 +578,8 @@ const PlayerModule = {
         // Don't move if game is over, level is completed, or timer isn't active
         if (CONFIG.isGameOver || CONFIG.isLevelCompleted || !CONFIG.timerActive) return;
         
-        const moveSpeed = 0.10; // Reduced from 0.15 to 0.08 for slower movement
+        const keyboardMoveSpeed = 0.10; // Base movement speed for keyboard
+        const joystickMoveSpeed = 0.05; // Reduced speed for joystick controls
         let newX = this.playerPosition.x;
         let newZ = this.playerPosition.z;
         let moved = false;
@@ -586,31 +587,31 @@ const PlayerModule = {
         
         // Handle keyboard controls
         if (CONFIG.keyState.ArrowUp) { 
-            newZ -= moveSpeed; 
+            newZ -= keyboardMoveSpeed; 
             direction.z = -1;
             moved = true;
         }
         if (CONFIG.keyState.ArrowDown) { 
-            newZ += moveSpeed; 
+            newZ += keyboardMoveSpeed; 
             direction.z = 1;
             moved = true;
         }
         if (CONFIG.keyState.ArrowLeft) { 
-            newX -= moveSpeed; 
+            newX -= keyboardMoveSpeed; 
             direction.x = -1;
             moved = true;
         }
         if (CONFIG.keyState.ArrowRight) { 
-            newX += moveSpeed; 
+            newX += keyboardMoveSpeed; 
             direction.x = 1;
             moved = true;
         }
         
         // Handle touch/joystick controls
         if (this.joystickActive && (this.joystickVector.x !== 0 || this.joystickVector.y !== 0)) {
-            // Joystick input affects movement
-            newZ += this.joystickVector.y * moveSpeed;
-            newX += this.joystickVector.x * moveSpeed;
+            // Joystick input affects movement - using slower speed
+            newZ += this.joystickVector.y * joystickMoveSpeed;
+            newX += this.joystickVector.x * joystickMoveSpeed;
             
             // Include joystick input in direction vector
             direction.x = this.joystickVector.x;
