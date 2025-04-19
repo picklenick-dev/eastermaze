@@ -6,6 +6,9 @@ import { GameModule } from './game.js';
 import { HighScoreModule } from './highscore.js';
 
 export const UIModule = {
+    // Flag to track if debug dropdown is visible
+    debugModeActive: false,
+
     // Oppdaterer poengsummen
     updateScoreDisplay: function() {
         document.getElementById('eggsFound').textContent = CONFIG.eggsFound;
@@ -77,6 +80,12 @@ export const UIModule = {
                     <button id="start-game-btn">Start spillet</button>
                     <button id="view-leaderboard-btn" class="secondary-btn">Vis poengtavle</button>
                 </div>
+                <div id="level-selector-container" style="display: none;">
+                    <label for="level-selector">Velg nivå:</label>
+                    <select id="level-selector">
+                        ${LEVELS.map((level, index) => `<option value="${index + 1}">Nivå ${index + 1}</option>`).join('')}
+                    </select>
+                </div>
             </div>
         `;
         document.body.appendChild(introDiv);
@@ -97,6 +106,26 @@ export const UIModule = {
                 HighScoreModule.showLeaderboard();
             });
         });
+
+        // Add event listener for Shift key to toggle level selector
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Shift') {
+                this.debugModeActive = true;
+                document.getElementById('level-selector-container').style.display = 'block';
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            if (e.key === 'Shift') {
+                this.debugModeActive = false;
+                document.getElementById('level-selector-container').style.display = 'none';
+            }
+        });
+
+        // Add event listener for level selector
+        document.getElementById('level-selector').addEventListener('change', (e) => {
+            CONFIG.currentLevel = parseInt(e.target.value, 10);
+        });
     },
     
     // Oppretter og viser melding når tiden er ute
@@ -113,7 +142,7 @@ export const UIModule = {
                 <p>Beklager, du rakk ikke å finne alle påskeeggene i tide.</p>
                 <div class="score-summary">
                     <p>Din poengsum:</p>
-                    <div class="bonus-row total"><span>Totalpoeng:</span> <span>${CONFIG.score}</span></div>
+                    <div class="bonus-row total"><span>Totalpoeng:</span> <span>${CONFIG.totalScore}</span></div>
                 </div>
                 <button id="save-score-btn">Lagre poengsum</button>
                 <button id="restart-game-btn">Start på nytt</button>
@@ -128,7 +157,7 @@ export const UIModule = {
             saveButton.textContent = 'Lagrer...';
             
             // Show input form for the player name
-            HighScoreModule.showLeaderboard(CONFIG.score);
+            HighScoreModule.showLeaderboard(CONFIG.totalScore);
         });
         
         document.getElementById('restart-game-btn').addEventListener('click', () => {
@@ -344,7 +373,7 @@ export const UIModule = {
                 <p>Å nei! Kaninen har blitt spist av krokodillene for mange ganger.</p>
                 <div class="score-summary">
                     <p>Din endelige poengsum:</p>
-                    <div class="bonus-row total"><span>Poeng:</span> <span>${CONFIG.score}</span></div>
+                    <div class="bonus-row total"><span>Poeng:</span> <span>${CONFIG.totalScore}</span></div>
                 </div>
                 <p>Du har ikke flere liv igjen og må starte på nytt.</p>
                 <button id="save-score-btn">Lagre poengsum</button>
@@ -361,7 +390,7 @@ export const UIModule = {
             saveButton.textContent = 'Lagrer...';
             
             // Show input form for the player name
-            HighScoreModule.showLeaderboard(CONFIG.score);
+            HighScoreModule.showLeaderboard(CONFIG.totalScore);
         });
         
         document.getElementById('restart-game-btn').addEventListener('click', () => {
@@ -390,7 +419,7 @@ export const UIModule = {
                     <p>Å nei! Kaninen ble spist av en av de farlige krokodillene!</p>
                     <div class="score-summary">
                         <p>Din poengsum så langt:</p>
-                        <div class="bonus-row total"><span>Poeng:</span> <span>${CONFIG.score}</span></div>
+                        <div class="bonus-row total"><span>Poeng:</span> <span>${CONFIG.totalScore}</span></div>
                     </div>
                     <p>Du har én mulighet til å prøve dette nivået på nytt.</p>
                     <button id="retry-level-btn">Prøv igjen</button>
@@ -405,7 +434,7 @@ export const UIModule = {
                     <p>Å nei! Kaninen ble spist av en av de farlige krokodillene!</p>
                     <div class="score-summary">
                         <p>Din endelige poengsum:</p>
-                        <div class="bonus-row total"><span>Poeng:</span> <span>${CONFIG.score}</span></div>
+                        <div class="bonus-row total"><span>Poeng:</span> <span>${CONFIG.totalScore}</span></div>
                     </div>
                     <p>Vær forsiktig og pass på krokodillene neste gang!</p>
                     <button id="save-score-btn">Lagre poengsum</button>
@@ -427,7 +456,7 @@ export const UIModule = {
             saveButton.textContent = 'Lagrer...';
             
             // Show input form for the player name
-            HighScoreModule.showLeaderboard(CONFIG.score);
+            HighScoreModule.showLeaderboard(CONFIG.totalScore);
         });
         
         // Legg til event listener for restart-knapp

@@ -567,3 +567,42 @@ h1 {
     color: #FFD700;
     margin: 15px 0;
 }
+
+/* Level selector for debug mode */
+#level-selector-container {
+    margin-top: 15px;
+    padding: 10px;
+    background-color: rgba(139, 69, 19, 0.1);
+    border-radius: 5px;
+    text-align: center;
+}
+
+#level-selector-container label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #8B4513;
+}
+
+#level-selector {
+    padding: 8px;
+    width: 80%;
+    max-width: 200px;
+    background-color: #FFFAF0;
+    border: 2px solid #8B4513;
+    border-radius: 5px;
+    color: #8B4513;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+#level-selector:focus {
+    outline: none;
+    border-color: #FFD700;
+    box-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+}
+
+#level-selector option {
+    background-color: #FFFAF0;
+    color: #8B4513;
+}

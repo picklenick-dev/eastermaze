@@ -22,7 +22,7 @@ export const HighScoreModule = {
     
     // Reset level-specific score information
     resetLevelScore: function() {
-        CONFIG.score = 0;
+        CONFIG.levelScore = 0;  // Reset only the level score
         CONFIG.comboCount = 0;
         CONFIG.comboMultiplier = 1;
         CONFIG.lastEggTime = 0;
@@ -63,6 +63,7 @@ export const HighScoreModule = {
         const points = Math.round(baseEggPoints * CONFIG.comboMultiplier);
         CONFIG.score += points;
         CONFIG.levelScore += points;
+        CONFIG.totalScore += points; // Update total score as well
         
         // Update UI
         this.updateScoreDisplay();
@@ -138,7 +139,7 @@ export const HighScoreModule = {
     
     // Update the score display
     updateScoreDisplay: function() {
-        document.getElementById('score-display').textContent = CONFIG.score;
+        document.getElementById('score-display').textContent = CONFIG.totalScore;
     },
     
     // Update the combo display
