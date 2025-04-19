@@ -579,7 +579,7 @@ const PlayerModule = {
         if (CONFIG.isGameOver || CONFIG.isLevelCompleted || !CONFIG.timerActive) return;
         
         const keyboardMoveSpeed = 0.10; // Base movement speed for keyboard
-        const joystickMoveSpeed = 0.05; // Reduced speed for joystick controls
+        const joystickMoveSpeed = 0.10; // Reduced speed for joystick controls
         let newX = this.playerPosition.x;
         let newZ = this.playerPosition.z;
         let moved = false;
