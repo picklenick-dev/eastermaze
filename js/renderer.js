@@ -7,6 +7,11 @@ export const RendererModule = {
     init: function() {
         // Opprette Three.js scene
         CONFIG.scene = new THREE.Scene();
+        
+        // Get current level theme
+        const currentTheme = CONFIG.levelThemes[CONFIG.currentLevel] || CONFIG.levelThemes[1];
+        
+        // Set background color based on level theme
         CONFIG.scene.background = new THREE.Color(CONFIG.colors.sky);
         
         // Set up Easter-themed fog in enhanced mode
@@ -49,6 +54,9 @@ export const RendererModule = {
     
     // Oppsett av lys i scenen
     setupLights: function() {
+        // Get current level theme
+        const currentTheme = CONFIG.levelThemes[CONFIG.currentLevel] || CONFIG.levelThemes[1];
+        
         // Base ambient light
         const ambientLight = new THREE.AmbientLight(0xffffff, CONFIG.enhancedGraphics ? 0.5 : 0.6);
         CONFIG.scene.add(ambientLight);
@@ -85,6 +93,9 @@ export const RendererModule = {
     
     // Lag bakkenivå
     createGround: function() {
+        // Get current level theme
+        const currentTheme = CONFIG.levelThemes[CONFIG.currentLevel] || CONFIG.levelThemes[1];
+        
         if (CONFIG.enhancedGraphics) {
             // Enhanced ground with texture for Easter theme
             const groundSize = 100;
@@ -111,19 +122,24 @@ export const RendererModule = {
                 ctx.fill();
             }
             
-            // Add tiny flowers randomly
+            // Add tiny flowers randomly - use theme colors for flowers
             for (let i = 0; i < 50; i++) {
                 const x = Math.random() * canvas.width;
                 const y = Math.random() * canvas.height;
                 const flowerSize = 3 + Math.random() * 4;
                 
-                // Flower petals in white, yellow or pink
-                ctx.fillStyle = ['#FFFFFF', '#FFFFA0', '#FFCCF0'][Math.floor(Math.random() * 3)];
+                // Convert theme decoration color to CSS color string
+                const colorIndex = Math.floor(Math.random() * currentTheme.decorationColors.length);
+                const themeColor = currentTheme.decorationColors[colorIndex];
+                const colorHex = themeColor.toString(16).padStart(6, '0');
+                const flowerColor = `#${colorHex}`;
+                
+                // Flower petals using theme color
+                ctx.fillStyle = flowerColor;
                 for (let p = 0; p < 5; p++) {
                     const angle = (p / 5) * Math.PI * 2;
                     const dx = Math.cos(angle) * flowerSize;
                     const dy = Math.sin(angle) * flowerSize;
-                    
                     ctx.beginPath();
                     ctx.ellipse(x + dx, y + dy, flowerSize/2, flowerSize/2, 0, 0, Math.PI * 2);
                     ctx.fill();
@@ -166,11 +182,14 @@ export const RendererModule = {
     
     // Add Easter-themed decorations to the scene
     addEasterDecorations: function() {
+        // Get current level theme
+        const currentTheme = CONFIG.levelThemes[CONFIG.currentLevel] || CONFIG.levelThemes[1];
+        
         // Add some clouds in the sky
         this.addClouds();
         
         // Add butterflies that fly around
-        this.addButterflies();
+        this.addButterflies(currentTheme);
     },
     
     // Add clouds to the sky
@@ -179,6 +198,7 @@ export const RendererModule = {
         
         for (let i = 0; i < 12; i++) {
             const cloudGeometry = new THREE.SphereGeometry(1, 16, 16);
+            
             const cloudMaterial = new THREE.MeshLambertMaterial({
                 color: 0xFFFFFF,
                 transparent: true,
@@ -230,7 +250,7 @@ export const RendererModule = {
     },
     
     // Add butterflies that fly around
-    addButterflies: function() {
+    addButterflies: function(theme) {
         const butterflyGroup = new THREE.Group();
         
         // Create a butterfly geometry
@@ -240,9 +260,8 @@ export const RendererModule = {
             // Create butterfly wings
             const wingGeometry = new THREE.CircleGeometry(0.5, 8);
             
-            // Easter colors for butterflies
-            const colors = [0xFFCCF0, 0xCCF0FF, 0xFFFF99, 0xCCFFCC];
-            const wingColor = colors[Math.floor(Math.random() * colors.length)];
+            // Use theme-specific decoration colors for butterflies
+            const wingColor = theme.decorationColors[Math.floor(Math.random() * theme.decorationColors.length)];
             
             const wingMaterial = new THREE.MeshLambertMaterial({
                 color: wingColor,

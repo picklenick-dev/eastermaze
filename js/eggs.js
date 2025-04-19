@@ -17,13 +17,32 @@ export const EggModule = {
         this.particleSystems = [];
         const currentLevel = LEVELS[CONFIG.currentLevel - 1];
         const mazeSize = currentLevel.mazeDesign.length;
-        const mazeDesign = currentLevel.mazeDesign;
         
         currentLevel.eggPositions.forEach(pos => {
-            // Sjekk om posisjonen er gyldig (ikke en vegg)
-            const x = pos[0];
-            const z = pos[1];
-            
+            this.createEgg(pos);
+        });
+        
+        CONFIG.totalEggs = this.eggs.length;
+        CONFIG.eggsFound = 0;
+        UIModule.updateScoreDisplay();
+    },
+    
+    // Oppretter et egg på gitt posisjon
+    createEgg: function(pos) {
+        if (!pos) return;
+        
+        const currentLevel = LEVELS[CONFIG.currentLevel - 1];
+        const mazeDesign = currentLevel.mazeDesign;
+        const mazeSize = mazeDesign.length; // Define mazeSize variable
+        
+        // Get current level theme
+        const currentTheme = CONFIG.levelThemes[CONFIG.currentLevel] || CONFIG.levelThemes[1];
+        
+        // Sjekk om posisjonen er gyldig
+        const x = pos[0];
+        const z = pos[1];
+        
+        if (x >= 0 && x < mazeDesign[0].length && z >= 0 && z < mazeDesign.length) {
             // Sjekk om det er en vegg (1) i denne posisjonen
             if (mazeDesign[z] && mazeDesign[z][x] === 1) {
                 console.warn(`Egg at position [${x}, ${z}] is inside a wall! Skipping this egg.`);
@@ -34,7 +53,7 @@ export const EggModule = {
             const eggGroup = new THREE.Group();
             
             // Opprett et detaljert påskeegg
-            this.createFancyEgg(eggGroup);
+            this.createFancyEgg(eggGroup, currentTheme);
             
             eggGroup.position.set(
                 pos[0] * 2 - mazeSize, 
@@ -49,30 +68,27 @@ export const EggModule = {
             };
             
             // Legg til partikkeleffekt
-            this.addParticleEffect(eggGroup);
+            this.addParticleEffect(eggGroup, currentTheme);
             
             // Legg til lyseffekt
-            this.addLightEffect(eggGroup);
+            if (CONFIG.enhancedGraphics) {
+                this.addLightEffect(eggGroup, currentTheme);
+            }
             
             this.eggs.push(eggGroup);
             CONFIG.scene.add(eggGroup);
-        });
-        
-        CONFIG.totalEggs = this.eggs.length;
-        CONFIG.eggsFound = 0;
-        UIModule.updateScoreDisplay();
+        }
     },
     
-    // Oppretter et detaljert påskeegg
-    createFancyEgg: function(eggGroup) {
-        // Lag en eggform (spiss på toppen, rundere på bunnen)
+    // Opprett et detaljert påskeegg med tilfeldig farge
+    createFancyEgg: function(eggGroup, theme) {
+        // Base egg geometry (oval shape)
         const eggGeometry = new THREE.SphereGeometry(0.4, 32, 32);
-        eggGeometry.scale(0.8, 1.1, 0.8);
+        eggGeometry.scale(1, 1.3, 1);
         
-        // Velg tilfeldig grunnfarge for egget
-        const randomColor = CONFIG.colors.eggColors[Math.floor(Math.random() * CONFIG.colors.eggColors.length)];
+        // Choose a random color from the theme's decoration colors
+        const randomColor = theme.decorationColors[Math.floor(Math.random() * theme.decorationColors.length)];
         
-        // Create more detailed materials in enhanced mode
         let eggMaterial;
         
         if (CONFIG.enhancedGraphics) {
@@ -316,247 +332,6 @@ export const EggModule = {
         }
     },
     
-    // Enhanced egg decorations for better graphics
-    addEnhancedEggDecorations: function(egg, baseColor) {
-        // Add glossy finish
-        const glossGeometry = new THREE.SphereGeometry(0.41, 32, 32);
-        glossGeometry.scale(0.8, 1.1, 0.8);
-        
-        const glossMaterial = new THREE.MeshPhongMaterial({
-            color: 0xFFFFFF,
-            specular: 0xFFFFFF,
-            shininess: 100,
-            transparent: true,
-            opacity: 0.3,
-            depthWrite: false
-        });
-        
-        const gloss = new THREE.Mesh(glossGeometry, glossMaterial);
-        egg.add(gloss);
-        
-        // Add 3D elements based on random selection
-        const decorType = Math.floor(Math.random() * 3);
-        
-        switch (decorType) {
-            case 0: // Ribbons
-                this.add3DRibbons(egg, baseColor);
-                break;
-            case 1: // Small gems
-                this.add3DGems(egg, baseColor);
-                break;
-            case 2: // Relief patterns
-                this.add3DPatterns(egg, baseColor);
-                break;
-        }
-    },
-    
-    // Add 3D ribbon decorations
-    add3DRibbons: function(egg, baseColor) {
-        // Create a ribbon wrapping around the egg
-        const ribbonColor = this.getContrastColor(baseColor);
-        
-        const ribbonMaterial = new THREE.MeshPhongMaterial({
-            color: ribbonColor,
-            shininess: 70,
-            specular: 0x444444
-        });
-        
-        const ribbonWidth = 0.08;
-        const ribbonGeometry = new THREE.BoxGeometry(ribbonWidth, 2.4, ribbonWidth);
-        
-        // Create ribbons wrapping the egg
-        for (let i = 0; i < 2; i++) {
-            const ribbon = new THREE.Mesh(ribbonGeometry, ribbonMaterial);
-            ribbon.position.y = 0;
-            
-            // Position ribbon
-            if (i === 0) {
-                // Vertical ribbon
-                ribbon.rotation.x = Math.PI / 2;
-            } else {
-                // Horizontal ribbon
-                ribbon.rotation.z = Math.PI / 2;
-            }
-            
-            egg.add(ribbon);
-        }
-        
-        // Add a bow on top
-        const bowGroup = new THREE.Group();
-        bowGroup.position.set(0, 0.5, 0);
-        
-        // Create bow loops
-        for (let i = 0; i < 2; i++) {
-            const loopGeometry = new THREE.TorusGeometry(0.12, 0.03, 8, 16, Math.PI);
-            const loop = new THREE.Mesh(loopGeometry, ribbonMaterial);
-            
-            loop.rotation.x = Math.PI / 2;
-            loop.rotation.y = (i === 0) ? Math.PI / 4 : -Math.PI / 4;
-            
-            bowGroup.add(loop);
-        }
-        
-        // Add small sphere in center of bow
-        const bowCenterGeometry = new THREE.SphereGeometry(0.05, 8, 8);
-        const bowCenter = new THREE.Mesh(bowCenterGeometry, ribbonMaterial);
-        bowGroup.add(bowCenter);
-        
-        egg.add(bowGroup);
-    },
-    
-    // Add 3D gems/sparkles to egg
-    add3DGems: function(egg, baseColor) {
-        // Create gem-like decorations on the egg surface
-        const gemCount = 8 + Math.floor(Math.random() * 8);
-        
-        for (let i = 0; i < gemCount; i++) {
-            // Get a position on the egg surface
-            const phi = Math.acos(2 * (Math.random() - 0.5));
-            const theta = Math.random() * Math.PI * 2;
-            
-            const x = 0.36 * Math.sin(phi) * Math.cos(theta);
-            const y = 0.47 * Math.cos(phi);
-            const z = 0.36 * Math.sin(phi) * Math.sin(theta);
-            
-            // Choose a gem color
-            const gemColors = [0xFFFFAA, 0xAAFFFF, 0xFFAAFF, 0xAAFFAA, 0xFFFFFF];
-            const gemColor = gemColors[Math.floor(Math.random() * gemColors.length)];
-            
-            // Create gem
-            const gemSize = 0.03 + Math.random() * 0.05;
-            const gemGeometry = new THREE.IcosahedronGeometry(gemSize, 0);
-            
-            const gemMaterial = new THREE.MeshPhongMaterial({
-                color: gemColor,
-                specular: 0xFFFFFF,
-                shininess: 100,
-                emissive: new THREE.Color(gemColor).multiplyScalar(0.2)
-            });
-            
-            const gem = new THREE.Mesh(gemGeometry, gemMaterial);
-            gem.position.set(x, y, z);
-            
-            // Orient gem to face outward
-            gem.lookAt(gem.position.clone().multiplyScalar(2));
-            
-            // Random rotation to add variety
-            gem.rotation.z = Math.random() * Math.PI * 2;
-            
-            egg.add(gem);
-        }
-    },
-    
-    // Add 3D patterns as relief
-    add3DPatterns: function(egg, baseColor) {
-        const patternType = Math.floor(Math.random() * 3);
-        const patternColor = this.getContrastColor(baseColor);
-        
-        const patternMaterial = new THREE.MeshPhongMaterial({
-            color: patternColor,
-            shininess: 50
-        });
-        
-        switch (patternType) {
-            case 0: // Spiral pattern
-                this.add3DSpiral(egg, patternMaterial);
-                break;
-            case 1: // Hearts
-                this.add3DHearts(egg, patternMaterial);
-                break;
-            case 2: // Stars
-                this.add3DStars(egg, patternMaterial);
-                break;
-        }
-    },
-    
-    // Add 3D spiral pattern
-    add3DSpiral: function(egg, material) {
-        const spiralPoints = [];
-        const radius = 0.35;
-        const height = 0.95;
-        
-        // Create a spiral around the egg
-        for (let i = 0; i < 100; i++) {
-            const angle = (i / 20) * Math.PI * 2;
-            const y = height * (i / 100 - 0.5);
-            
-            // Calculate radius based on egg shape (thinner at top)
-            const adjRadius = radius * Math.sqrt(1 - (y * y) / (height * height));
-            
-            const x = Math.cos(angle) * adjRadius;
-            const z = Math.sin(angle) * adjRadius;
-            
-            spiralPoints.push(new THREE.Vector3(x, y, z));
-        }
-        
-        // Create tube geometry for spiral
-        const spiralCurve = new THREE.CatmullRomCurve3(spiralPoints);
-        const spiralGeometry = new THREE.TubeGeometry(spiralCurve, 100, 0.02, 8, false);
-        
-        const spiral = new THREE.Mesh(spiralGeometry, material);
-        egg.add(spiral);
-    },
-    
-    // Add 3D heart decorations
-    add3DHearts: function(egg, material) {
-        const heartCount = 6 + Math.floor(Math.random() * 4);
-        
-        for (let i = 0; i < heartCount; i++) {
-            // Get position on egg surface
-            const phi = Math.acos(2 * (Math.random() - 0.5));
-            const theta = Math.random() * Math.PI * 2;
-            
-            const x = 0.36 * Math.sin(phi) * Math.cos(theta);
-            const y = 0.47 * Math.cos(phi);
-            const z = 0.36 * Math.sin(phi) * Math.sin(theta);
-            
-            // Create heart shape using a sphere and scaling
-            const heartGeometry = new THREE.SphereGeometry(0.08, 8, 8);
-            heartGeometry.scale(1, 1.2, 0.7);
-            
-            const heart = new THREE.Mesh(heartGeometry, material);
-            heart.position.set(x, y, z);
-            
-            // Orient heart to face outward
-            heart.lookAt(heart.position.clone().multiplyScalar(2));
-            
-            // Add dent at top of heart
-            const dent = heart.position.clone().normalize().multiplyScalar(0.1);
-            heart.position.y += dent.y * 0.3;
-            
-            egg.add(heart);
-        }
-    },
-    
-    // Add 3D star decorations
-    add3DStars: function(egg, material) {
-        const starCount = 6 + Math.floor(Math.random() * 4);
-        
-        for (let i = 0; i < starCount; i++) {
-            // Get position on egg surface
-            const phi = Math.acos(2 * (Math.random() - 0.5));
-            const theta = Math.random() * Math.PI * 2;
-            
-            const x = 0.36 * Math.sin(phi) * Math.cos(theta);
-            const y = 0.47 * Math.cos(phi);
-            const z = 0.36 * Math.sin(phi) * Math.sin(theta);
-            
-            // Create star geometry
-            const starGeometry = new THREE.CircleGeometry(0.08, 5);
-            
-            const star = new THREE.Mesh(starGeometry, material);
-            star.position.set(x, y, z);
-            
-            // Orient star to face outward
-            star.lookAt(star.position.clone().multiplyScalar(2));
-            
-            // Random rotation for variety
-            star.rotation.z = Math.random() * Math.PI * 2;
-            
-            egg.add(star);
-        }
-    },
-    
     // Legger til dekorasjoner på eggene
     addEggDecorations: function(egg, baseColor) {
         // Velg tilfeldig dekorasjonsstil (1-3)
@@ -727,12 +502,16 @@ export const EggModule = {
     },
     
     // Legg til partikkeleffekt rundt egget
-    addParticleEffect: function(eggGroup) {
+    addParticleEffect: function(eggGroup, theme) {
         // Partikkelparametere
         const particleCount = 30;
         const particleGeometry = new THREE.BufferGeometry();
+        
+        // Use theme color for particles
+        const particleColor = theme ? theme.decorationColors[Math.floor(Math.random() * theme.decorationColors.length)] : 0xFFFFFF;
+        
         const particleMaterial = new THREE.PointsMaterial({
-            color: 0xFFFFFF,
+            color: particleColor,
             size: 0.05,
             transparent: true,
             opacity: 0.6,
@@ -799,15 +578,16 @@ export const EggModule = {
     },
     
     // Legg til lyseffekt på egget
-    addLightEffect: function(eggGroup) {
+    addLightEffect: function(eggGroup, theme) {
         // Punktlys som lyser opp egget
         const light = new THREE.PointLight(0xFFFFFF, 1, 3);
         light.position.set(0, 0.5, 0);
         
-        // Start med en tilfeldig farge eller hvit
-        const randomColor = Math.random() > 0.5 
-            ? 0xFFFFFF 
-            : CONFIG.colors.eggColors[Math.floor(Math.random() * CONFIG.colors.eggColors.length)];
+        // Use theme-specific color for the light
+        const themeColor = theme ? theme.decorationColors[Math.floor(Math.random() * theme.decorationColors.length)] : 0xFFFFFF;
+        
+        // Start med en tilfeldig farge fra temaet eller hvit
+        const randomColor = Math.random() > 0.5 ? 0xFFFFFF : themeColor;
         
         light.color.set(randomColor);
         light.userData = {
@@ -816,6 +596,261 @@ export const EggModule = {
         };
         
         eggGroup.add(light);
+    },
+    
+    // Enhanced egg decorations for better graphics
+    addEnhancedEggDecorations: function(egg, baseColor) {
+        // Add glossy finish
+        const glossGeometry = new THREE.SphereGeometry(0.41, 32, 32);
+        glossGeometry.scale(1, 1.3, 1);
+        
+        const glossMaterial = new THREE.MeshPhongMaterial({
+            color: 0xFFFFFF,
+            specular: 0xFFFFFF,
+            shininess: 100,
+            transparent: true,
+            opacity: 0.3,
+            depthWrite: false
+        });
+        
+        const gloss = new THREE.Mesh(glossGeometry, glossMaterial);
+        egg.add(gloss);
+        
+        // Add 3D elements based on random selection
+        const decorType = Math.floor(Math.random() * 3);
+        
+        switch (decorType) {
+            case 0: // Ribbons
+                this.add3DRibbons(egg, baseColor);
+                break;
+            case 1: // Small gems
+                this.add3DGems(egg, baseColor);
+                break;
+            case 2: // Relief patterns
+                this.add3DPatterns(egg, baseColor);
+                break;
+        }
+    },
+    
+    // Add 3D ribbon decorations
+    add3DRibbons: function(egg, baseColor) {
+        const contrastColor = this.getContrastColor(baseColor);
+        
+        // Create ribbon material
+        const ribbonMaterial = new THREE.MeshStandardMaterial({
+            color: contrastColor,
+            metalness: 0.3,
+            roughness: 0.5,
+            emissive: new THREE.Color(contrastColor).multiplyScalar(0.2)
+        });
+        
+        // Add 2-3 ribbons around the egg
+        const ribbonCount = 2 + Math.floor(Math.random() * 2);
+        
+        for (let i = 0; i < ribbonCount; i++) {
+            // Create a curved ribbon using a torus segment
+            const ribbonWidth = 0.06 + Math.random() * 0.04;
+            const ribbonGeometry = new THREE.TorusGeometry(0.4, ribbonWidth, 8, 32, Math.PI * 1.5);
+            
+            const ribbon = new THREE.Mesh(ribbonGeometry, ribbonMaterial);
+            
+            // Position ribbons at different heights and rotations
+            const height = -0.2 + (i / ribbonCount) * 0.8;
+            ribbon.position.y = height;
+            ribbon.rotation.x = Math.PI / 2;
+            ribbon.rotation.z = Math.random() * Math.PI * 2;
+            
+            egg.add(ribbon);
+            
+            // Add a decorative bow at ribbon intersection
+            if (Math.random() > 0.5) {
+                const bowGeometry = new THREE.SphereGeometry(ribbonWidth * 1.5, 8, 8);
+                const bow = new THREE.Mesh(bowGeometry, ribbonMaterial);
+                
+                // Calculate position on the ribbon
+                const angle = Math.random() * Math.PI * 1.5;
+                const bowRadius = 0.4;
+                bow.position.set(
+                    Math.cos(angle) * bowRadius, 
+                    height, 
+                    Math.sin(angle) * bowRadius
+                );
+                
+                egg.add(bow);
+            }
+        }
+    },
+    
+    // Add 3D gems/jewels to egg
+    add3DGems: function(egg, baseColor) {
+        // Create 5-10 small jewels
+        const gemCount = 5 + Math.floor(Math.random() * 6);
+        
+        for (let i = 0; i < gemCount; i++) {
+            // Use complementary colors for gems
+            const gemColorOptions = [0xFF0000, 0x00FF00, 0x0000FF, 0xFFFF00, 0xFF00FF, 0x00FFFF];
+            const gemColor = gemColorOptions[Math.floor(Math.random() * gemColorOptions.length)];
+            
+            // Random gem size
+            const gemSize = 0.05 + Math.random() * 0.05;
+            
+            // Create gem using icosahedron (diamond-like)
+            const gemGeometry = new THREE.IcosahedronGeometry(gemSize, 0);
+            
+            const gemMaterial = new THREE.MeshPhongMaterial({
+                color: gemColor,
+                specular: 0xFFFFFF,
+                shininess: 100,
+                emissive: new THREE.Color(gemColor).multiplyScalar(0.2)
+            });
+            
+            const gem = new THREE.Mesh(gemGeometry, gemMaterial);
+            
+            // Place gem at random position on egg surface
+            const phi = 0.3 + Math.random() * 2.5; // Avoid exact top/bottom
+            const theta = Math.random() * Math.PI * 2;
+            const radius = 0.42;
+            
+            const x = radius * Math.sin(phi) * Math.cos(theta);
+            const y = radius * Math.cos(phi);
+            const z = radius * Math.sin(phi) * Math.sin(theta);
+            
+            gem.position.set(x, y, z);
+            
+            // Orient gem to face outward
+            gem.lookAt(gem.position.clone().multiplyScalar(2));
+            
+            // Random rotation to add variety
+            gem.rotation.z = Math.random() * Math.PI * 2;
+            
+            egg.add(gem);
+        }
+    },
+    
+    // Add 3D patterns as relief
+    add3DPatterns: function(egg, baseColor) {
+        const patternType = Math.floor(Math.random() * 3);
+        const patternColor = this.getContrastColor(baseColor);
+        
+        const patternMaterial = new THREE.MeshPhongMaterial({
+            color: patternColor,
+            specular: 0x222222,
+            shininess: 30
+        });
+        
+        switch (patternType) {
+            case 0: // Spiral pattern
+                this.add3DSpiral(egg, patternMaterial);
+                break;
+            case 1: // Dots pattern
+                this.add3DDots(egg, patternMaterial);
+                break;
+            case 2: // Line pattern
+                this.add3DLines(egg, patternMaterial);
+                break;
+        }
+    },
+    
+    // Add 3D spiral pattern to egg
+    add3DSpiral: function(egg, material) {
+        const spiralPoints = [];
+        const spiralRadius = 0.4;
+        const spiralTurns = 3 + Math.floor(Math.random() * 3);
+        
+        // Create spiral points
+        for (let i = 0; i < 50; i++) {
+            const angle = (i / 50) * Math.PI * 2 * spiralTurns;
+            const height = -0.4 + (i / 50) * 0.8;
+            const radius = spiralRadius * Math.sin(Math.PI * (i / 50));
+            
+            spiralPoints.push(new THREE.Vector3(
+                radius * Math.cos(angle),
+                height,
+                radius * Math.sin(angle)
+            ));
+        }
+        
+        // Create curve from points
+        const spiralCurve = new THREE.CatmullRomCurve3(spiralPoints);
+        
+        // Create tube along the curve
+        const spiralGeometry = new THREE.TubeGeometry(
+            spiralCurve,
+            64,
+            0.02 + Math.random() * 0.01,
+            8,
+            false
+        );
+        
+        const spiral = new THREE.Mesh(spiralGeometry, material);
+        egg.add(spiral);
+    },
+    
+    // Add 3D dot pattern
+    add3DDots: function(egg, material) {
+        const dotCount = 15 + Math.floor(Math.random() * 10);
+        
+        for (let i = 0; i < dotCount; i++) {
+            const dotSize = 0.03 + Math.random() * 0.03;
+            const dotGeometry = new THREE.SphereGeometry(dotSize, 8, 8);
+            
+            const dot = new THREE.Mesh(dotGeometry, material);
+            
+            // Place dots in a symmetrical pattern
+            const row = Math.floor(i / 5);
+            const col = i % 5;
+            
+            const phi = 0.3 + (row / 5) * 2.5;
+            const theta = (col / 5) * Math.PI * 2;
+            
+            const radius = 0.42;
+            dot.position.set(
+                radius * Math.sin(phi) * Math.cos(theta),
+                radius * Math.cos(phi),
+                radius * Math.sin(phi) * Math.sin(theta)
+            );
+            
+            // Make dot face outward
+            dot.lookAt(new THREE.Vector3(0, 0, 0));
+            
+            egg.add(dot);
+        }
+    },
+    
+    // Add 3D line pattern
+    add3DLines: function(egg, material) {
+        const lineCount = 6 + Math.floor(Math.random() * 5);
+        
+        for (let i = 0; i < lineCount; i++) {
+            // Either horizontal or vertical lines
+            const isHorizontal = i % 2 === 0;
+            
+            const lineGeometry = new THREE.CylinderGeometry(
+                0.01, 0.01, 
+                isHorizontal ? 0.8 : 0.5, 
+                8
+            );
+            
+            const line = new THREE.Mesh(lineGeometry, material);
+            
+            if (isHorizontal) {
+                // Horizontal rings around egg
+                const height = -0.3 + (i / lineCount) * 0.8;
+                line.position.y = height;
+                line.rotation.x = Math.PI / 2;
+                line.scale.x = 0.8;
+                line.scale.z = 0.8;
+            } else {
+                // Vertical lines from top to bottom
+                const angle = (i / lineCount) * Math.PI;
+                line.position.x = 0.3 * Math.cos(angle);
+                line.position.z = 0.3 * Math.sin(angle);
+                line.rotation.x = 0;
+                line.rotation.z = Math.PI / 2;
+            }
+            
+            egg.add(line);
+        }
     },
     
     // Sjekk om spilleren har plukket opp egg

@@ -18,15 +18,17 @@ export const MazeModule = {
         const mazeDesign = currentLevel.mazeDesign;
         const mazeSize = mazeDesign.length;
         
+        // Get current level theme
+        const currentTheme = CONFIG.levelThemes[CONFIG.currentLevel] || CONFIG.levelThemes[1];
+        
         // Create wall materials based on graphics setting
         let wallMaterial;
         
         if (CONFIG.enhancedGraphics) {
             // Create textured wall material for enhanced graphics
-            const wallTexture = this.createEasterWallTexture();
-            
+            const wallTexture = this.createEasterWallTexture(currentTheme);
             wallMaterial = new THREE.MeshStandardMaterial({ 
-                color: CONFIG.colors.walls,
+                color: currentTheme.wallColor,
                 map: wallTexture,
                 roughness: 0.7,
                 metalness: 0.1,
@@ -35,12 +37,12 @@ export const MazeModule = {
             });
             
             // Create wooden frame texture for top of walls
-            const frameTexture = this.createWoodenFrameTexture();
+            const frameTexture = this.createWoodenFrameTexture(currentTheme);
             this.frameTexture = frameTexture;
         } else {
             // Simple material for performance mode
             wallMaterial = new THREE.MeshStandardMaterial({ 
-                color: CONFIG.colors.walls,
+                color: currentTheme.wallColor,
                 roughness: 0.7,
                 transparent: true,
                 opacity: 1.0
@@ -52,7 +54,7 @@ export const MazeModule = {
                 if (mazeDesign[i][j] === 1) {
                     if (CONFIG.enhancedGraphics) {
                         // Create enhanced walls
-                        this.createEnhancedWall(j, i, mazeSize);
+                        this.createEnhancedWall(j, i, mazeSize, currentTheme);
                     } else {
                         // Simple wall geometry
                         const wallGeometry = new THREE.BoxGeometry(2, 2, 2);
@@ -75,7 +77,7 @@ export const MazeModule = {
     },
     
     // Create enhanced walls with Easter decorations
-    createEnhancedWall: function(x, z, mazeSize) {
+    createEnhancedWall: function(x, z, mazeSize, theme) {
         const wallGroup = new THREE.Group();
         wallGroup.position.set(x * 2 - mazeSize, 0, z * 2 - mazeSize);
         
@@ -83,10 +85,10 @@ export const MazeModule = {
         const wallGeometry = new THREE.BoxGeometry(2, 1.8, 2);
         
         // Create wall texture
-        const wallTexture = this.createEasterWallTexture();
+        const wallTexture = this.createEasterWallTexture(theme);
         
         const wallMaterial = new THREE.MeshStandardMaterial({
-            color: CONFIG.colors.walls,
+            color: theme.wallColor,
             map: wallTexture,
             roughness: 0.7,
             metalness: 0.1,
@@ -103,7 +105,7 @@ export const MazeModule = {
         // Add wooden frame on top
         const frameGeometry = new THREE.BoxGeometry(2.2, 0.3, 2.2);
         const frameMaterial = new THREE.MeshStandardMaterial({
-            color: 0x8B4513,
+            color: theme.frameColor,
             map: this.frameTexture,
             roughness: 0.9,
             metalness: 0.1,
@@ -118,7 +120,7 @@ export const MazeModule = {
         
         // Add Easter decorations
         if (Math.random() < 0.3) { // Only add decorations to some walls
-            this.addWallDecoration(wallGroup);
+            this.addWallDecoration(wallGroup, theme);
         }
         
         wallGroup.userData = {
@@ -132,39 +134,34 @@ export const MazeModule = {
     },
     
     // Create Easter-themed wall texture
-    createEasterWallTexture: function() {
+    createEasterWallTexture: function(theme) {
         const canvas = document.createElement('canvas');
         canvas.width = 256;
         canvas.height = 256;
         const ctx = canvas.getContext('2d');
         
         // Base color (light pastel)
-        ctx.fillStyle = '#F5E8C0'; // Light beige/cream
+        ctx.fillStyle = theme.wallBaseTexture; // Use theme-specific base color
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
         // Add subtle texture
-        ctx.fillStyle = '#EFE0B0';
-        for (let i = 0; i < 100; i++) {
+        ctx.fillStyle = theme.wallPatternColor; // Use theme-specific pattern color
+        
+        for (let i = 0; i < 200; i++) {
             const x = Math.random() * canvas.width;
             const y = Math.random() * canvas.height;
-            const size = 5 + Math.random() * 15;
+            const radius = 5 + Math.random() * 15;
             ctx.beginPath();
-            ctx.ellipse(x, y, size, size, 0, 0, Math.PI * 2);
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
             ctx.fill();
         }
         
-        // Add Easter egg pattern
-        for (let i = 0; i < 8; i++) {
-            const x = 32 + (i % 4) * 64;
-            const y = 32 + Math.floor(i / 4) * 96;
+        // Add Easter-themed decorative patterns
+        const patternCount = Math.floor(Math.random() * 5) + 2;
+        for (let i = 0; i < patternCount; i++) {
+            const x = 20 + Math.random() * (canvas.width - 40);
+            const y = 20 + Math.random() * (canvas.height - 40);
             
-            // Draw egg outline
-            ctx.fillStyle = ['#FFB6C1', '#ADD8E6', '#98FB98', '#FFFACD'][i % 4];
-            ctx.beginPath();
-            ctx.ellipse(x, y, 16, 22, 0, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Add decorative pattern
             ctx.strokeStyle = '#8B4513';
             ctx.lineWidth = 1;
             
@@ -210,14 +207,15 @@ export const MazeModule = {
     },
     
     // Create wooden frame texture
-    createWoodenFrameTexture: function() {
+    createWoodenFrameTexture: function(theme) {
         const canvas = document.createElement('canvas');
         canvas.width = 256;
         canvas.height = 32;
         const ctx = canvas.getContext('2d');
         
         // Base wood color
-        ctx.fillStyle = '#8B4513';
+        const frameColorHex = theme.frameColor.toString(16).padStart(6, '0');
+        ctx.fillStyle = `#${frameColorHex}`;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
         // Add wood grain
@@ -254,35 +252,39 @@ export const MazeModule = {
             ctx.stroke();
         }
         
+        // Create and return the texture
         const texture = new THREE.CanvasTexture(canvas);
         texture.wrapS = THREE.RepeatWrapping;
         texture.wrapT = THREE.RepeatWrapping;
+        texture.repeat.set(1, 1);
         
         return texture;
     },
     
     // Add Easter decoration to wall
-    addWallDecoration: function(wallGroup) {
+    addWallDecoration: function(wallGroup, theme) {
         // Choose a random decoration type
         const decorType = Math.floor(Math.random() * 3);
         
         switch (decorType) {
             case 0: // Colorful Easter ribbon
-                this.addRibbonDecoration(wallGroup);
+                this.addRibbonDecoration(wallGroup, theme);
                 break;
             case 1: // Easter flower
-                this.addFlowerDecoration(wallGroup);
+                this.addFlowerDecoration(wallGroup, theme);
                 break;
             case 2: // Small Easter basket
-                this.addEasterBasket(wallGroup);
+                this.addEasterBasket(wallGroup, theme);
                 break;
         }
     },
     
     // Add colorful Easter ribbon
-    addRibbonDecoration: function(wallGroup) {
+    addRibbonDecoration: function(wallGroup, theme) {
         const ribbonGeometry = new THREE.BoxGeometry(1.5, 0.2, 0.05);
-        const ribbonColor = [0xFF9999, 0x99FF99, 0x9999FF, 0xFFFF99][Math.floor(Math.random() * 4)];
+        
+        // Use theme-specific decoration color
+        const ribbonColor = theme.decorationColors[Math.floor(Math.random() * theme.decorationColors.length)];
         
         const ribbonMaterial = new THREE.MeshLambertMaterial({
             color: ribbonColor,
@@ -323,7 +325,7 @@ export const MazeModule = {
     },
     
     // Add Easter flower decoration
-    addFlowerDecoration: function(wallGroup) {
+    addFlowerDecoration: function(wallGroup, theme) {
         const flowerGroup = new THREE.Group();
         
         // Flower stem
@@ -335,7 +337,7 @@ export const MazeModule = {
         
         // Flower petals
         const petalCount = 5 + Math.floor(Math.random() * 3);
-        const petalColor = [0xFFAAAA, 0xAAFFAA, 0xAAAAFF, 0xFFFFAA][Math.floor(Math.random() * 4)];
+        const petalColor = theme.decorationColors[Math.floor(Math.random() * theme.decorationColors.length)];
         const petalMaterial = new THREE.MeshLambertMaterial({ 
             color: petalColor,
             emissive: new THREE.Color(petalColor).multiplyScalar(0.15)
@@ -393,7 +395,7 @@ export const MazeModule = {
     },
     
     // Add small Easter basket
-    addEasterBasket: function(wallGroup) {
+    addEasterBasket: function(wallGroup, theme) {
         const basketGroup = new THREE.Group();
         
         // Basket base
@@ -409,60 +411,57 @@ export const MazeModule = {
         handle.rotation.x = Math.PI / 2;
         basketGroup.add(handle);
         
-        // Mini Easter eggs in basket
-        const eggColors = [0xFF9999, 0x99FF99, 0x9999FF, 0xFFFF99, 0xFF99FF];
-        
-        for (let i = 0; i < 4; i++) {
+        // Add mini eggs in basket
+        const eggCount = 2 + Math.floor(Math.random() * 3);
+        for (let i = 0; i < eggCount; i++) {
             const eggGeometry = new THREE.SphereGeometry(0.05, 8, 8);
-            eggGeometry.scale(0.8, 1, 0.8);
+            eggGeometry.scale(1, 1.3, 1);
+            
+            // Use theme-specific decoration color
+            const eggColor = theme.decorationColors[Math.floor(Math.random() * theme.decorationColors.length)];
             
             const eggMaterial = new THREE.MeshLambertMaterial({ 
-                color: eggColors[i % eggColors.length],
-                emissive: new THREE.Color(eggColors[i % eggColors.length]).multiplyScalar(0.1)
+                color: eggColor,
+                emissive: new THREE.Color(eggColor).multiplyScalar(0.2)
             });
             
             const egg = new THREE.Mesh(eggGeometry, eggMaterial);
             
-            // Position eggs in the basket
-            const angle = (i / 4) * Math.PI * 2;
-            const radius = 0.1;
+            // Position egg within basket
+            const angle = (i / eggCount) * Math.PI * 2;
+            const radius = 0.08;
             egg.position.set(
                 Math.cos(angle) * radius,
-                0.08,
+                0.05,
                 Math.sin(angle) * radius
             );
-            
-            // Random rotation
-            egg.rotation.x = Math.random() * Math.PI;
-            egg.rotation.z = Math.random() * Math.PI;
+            egg.rotation.x = Math.random() * Math.PI / 4;
+            egg.rotation.z = Math.random() * Math.PI / 4;
             
             basketGroup.add(egg);
         }
         
         // Position on wall
-        basketGroup.position.y = 0.25;
-        
-        // Choose a random corner
         const side = Math.floor(Math.random() * 4);
-        const offset = 0.7;
+        basketGroup.position.y = 0.3;
         
         switch (side) {
-            case 0: // Front-right
-                basketGroup.position.set(offset, 0.25, offset);
+            case 0: // Front
+                basketGroup.position.z = 1.03;
                 break;
-            case 1: // Front-left
-                basketGroup.position.set(-offset, 0.25, offset);
+            case 1: // Back
+                basketGroup.position.z = -1.03;
+                basketGroup.rotation.y = Math.PI;
                 break;
-            case 2: // Back-right
-                basketGroup.position.set(offset, 0.25, -offset);
+            case 2: // Left
+                basketGroup.position.x = -1.03;
+                basketGroup.rotation.y = Math.PI / 2;
                 break;
-            case 3: // Back-left
-                basketGroup.position.set(-offset, 0.25, -offset);
+            case 3: // Right
+                basketGroup.position.x = 1.03;
+                basketGroup.rotation.y = -Math.PI / 2;
                 break;
         }
-        
-        // Slightly random rotation
-        basketGroup.rotation.y = Math.random() * Math.PI * 2;
         
         wallGroup.add(basketGroup);
     },

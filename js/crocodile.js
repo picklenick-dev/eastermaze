@@ -482,6 +482,20 @@ export const CrocodileModule = {
     wakeUpCrocodile: function(crocodile, now) {
         const userData = crocodile.userData;
         
+        // Sjekk om det er en spiller nær krokodillen
+        const playerPosition = PlayerModule.playerPosition;
+        const distance = Math.sqrt(
+            Math.pow(crocodile.userData.gridX - playerPosition.x, 2) + 
+            Math.pow(crocodile.userData.gridZ - playerPosition.z, 2)
+        );
+        
+        // Hvis spilleren er for nær, forleng sovetid istedenfor å våkne
+        if (distance < 1.5) {
+            userData.sleepTime = now;
+            userData.sleepDuration = Math.random() * 2000 + 2000; // 2-4 sekunder ekstra søvn
+            return;
+        }
+        
         // Oppdater tilstand
         userData.isSleeping = false;
         userData.awakeTime = now;
@@ -620,7 +634,7 @@ export const CrocodileModule = {
                 
                 // Beveg mot målet - juster hastighet basert på nivå
                 const speedFactor = crocodile.userData.speedFactor || 1;
-                const moveSpeed = 0.15 * speedFactor; // Increased from 0.1 to 0.15
+                const moveSpeed = 0.15 * speedFactor;
                 const newX = crocodile.userData.gridX + direction.x * moveSpeed;
                 const newZ = crocodile.userData.gridZ + direction.y * moveSpeed;
                 
@@ -634,22 +648,34 @@ export const CrocodileModule = {
                     crocodile.userData.pathIndex++;
                 }
                 
-                // Oppdater posisjon i grid
-                crocodile.userData.gridX = newX;
-                crocodile.userData.gridZ = newZ;
+                // Sjekk om ny posisjon kolliderer med en vegg
+                const gridX = Math.round(newX);
+                const gridZ = Math.round(newZ);
                 
-                // Oppdater faktisk posisjon
-                const mazeSize = mazeDesign.length;
-                crocodile.position.set(
-                    newX * 2 - mazeSize,
-                    0,
-                    newZ * 2 - mazeSize
-                );
-                
-                // Roter krokodillen i retning av bevegelsen
-                if (direction.length() > 0) {
-                    const angle = Math.atan2(direction.x, direction.y);
-                    crocodile.rotation.y = angle;
+                if (gridX >= 0 && gridX < mazeDesign[0].length && 
+                    gridZ >= 0 && gridZ < mazeDesign.length && 
+                    mazeDesign[gridZ][gridX] !== 1) {
+                    
+                    // Oppdater posisjon i grid
+                    crocodile.userData.gridX = newX;
+                    crocodile.userData.gridZ = newZ;
+                    
+                    // Oppdater faktisk posisjon
+                    const mazeSize = mazeDesign.length;
+                    crocodile.position.set(
+                        newX * 2 - mazeSize,
+                        0,
+                        newZ * 2 - mazeSize
+                    );
+                    
+                    // Roter krokodillen i retning av bevegelsen
+                    if (direction.length() > 0) {
+                        const angle = Math.atan2(direction.x, direction.y);
+                        crocodile.rotation.y = angle;
+                    }
+                } else {
+                    // Hvis veien er blokkert, beregn ny sti
+                    crocodile.userData.lastPathfinding = 0; // Dette vil tvinge en ny sti-beregning neste gang
                 }
             }
         } else {
@@ -666,7 +692,7 @@ export const CrocodileModule = {
             
             // Beveg mot spilleren - juster hastighet basert på nivå
             const speedFactor = crocodile.userData.speedFactor || 1;
-            const moveSpeed = 0.08 * speedFactor; // Increased from 0.05 to 0.08
+            const moveSpeed = 0.08 * speedFactor;
             const newX = crocodile.userData.gridX + direction.x * moveSpeed;
             const newZ = crocodile.userData.gridZ + direction.y * moveSpeed;
             
@@ -695,6 +721,9 @@ export const CrocodileModule = {
                     const angle = Math.atan2(direction.x, direction.y);
                     crocodile.rotation.y = angle;
                 }
+            } else {
+                // Tvinge en ny sti-beregning siden direkte bevegelse ble blokkert
+                crocodile.userData.lastPathfinding = 0;
             }
         }
     },
