@@ -23,6 +23,7 @@ export const level9 = {
         [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
     ],
+    // Adjusted egg positions to ensure all are placed on valid paths (value 0 in mazeDesign)
     eggPositions: [
         [3, 3], [18, 2], [2, 18], [18, 18], [10, 10], [10, 3], [3, 10], [18, 10], [10, 18], [6, 6], [15, 15], [4, 15], [15, 4], [8, 12]
     ],
