@@ -19,6 +19,9 @@ export const CONFIG = {
     currentLevelRetried: false,
     crocodilesEnabled: true, // Option to enable or disable crocodiles
     
+    // Grafikk-relaterte variabler
+    enhancedGraphics: true, // Default is enabled for enhanced Easter graphics
+    
     // Timer-relaterte variabler
     timerActive: false,
     startTime: null,

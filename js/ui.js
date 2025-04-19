@@ -51,6 +51,12 @@ export const UIModule = {
                         Spill med krokodiller
                     </label>
                 </div>
+                <div class="sound-option">
+                    <label>
+                        <input type="checkbox" id="graphics-toggle" checked>
+                        Forbedret påskegrafikkk
+                    </label>
+                </div>
                 <button id="start-game-btn">Start spillet</button>
             </div>
         `;
@@ -60,6 +66,7 @@ export const UIModule = {
             // Sett lyd-innstillingen basert på checkbox
             CONFIG.soundEnabled = document.getElementById('sound-toggle').checked;
             CONFIG.crocodilesEnabled = document.getElementById('crocodiles-toggle').checked;
+            CONFIG.enhancedGraphics = document.getElementById('graphics-toggle').checked;
             this.removeMessages();
             this.showWelcomeMessage();
         });
