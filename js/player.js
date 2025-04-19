@@ -638,13 +638,17 @@ const PlayerModule = {
         // Sjekk kollisjoner med veggene
         const currentLevel = LEVELS[CONFIG.currentLevel - 1];
         const mazeDesign = currentLevel.mazeDesign;
+        
+        // Calculate grid position - fixed boundary checking to prevent crashes
         const gridX = Math.round(newX);
         const gridZ = Math.round(newZ);
         
-        if (gridX >= 0 && gridX < mazeDesign[0].length && 
-            gridZ >= 0 && gridZ < mazeDesign.length && 
-            mazeDesign[gridZ][gridX] !== 1) {
-            
+        // Safe bounds checking to prevent array out-of-bounds errors
+        const isWithinBounds = gridX >= 0 && gridX < mazeDesign[0].length && 
+                              gridZ >= 0 && gridZ < mazeDesign.length;
+        
+        // Only move if within bounds and not a wall
+        if (isWithinBounds && mazeDesign[gridZ][gridX] !== 1) {
             this.playerPosition.x = newX;
             this.playerPosition.z = newZ;
             

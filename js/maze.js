@@ -18,8 +18,10 @@ export const MazeModule = {
         const mazeDesign = currentLevel.mazeDesign;
         const mazeSize = mazeDesign.length;
         
-        // Get current level theme
-        const currentTheme = CONFIG.levelThemes[CONFIG.currentLevel] || CONFIG.levelThemes[1];
+        // Get current level theme - Fixed to ensure proper theme selection for all levels
+        const levelIndex = CONFIG.currentLevel;
+        const currentTheme = CONFIG.levelThemes[levelIndex] || CONFIG.levelThemes[1];
+        console.log(`Creating maze for level ${levelIndex} with theme: ${currentTheme.name}`);
         
         // Create wall materials based on graphics setting
         let wallMaterial;
