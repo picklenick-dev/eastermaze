@@ -47,7 +47,15 @@ export const CONFIG = {
             wallBaseTexture: "#F5E8C0",
             wallPatternColor: "#EFE0B0",
             frameColor: 0x9B7653,
-            decorationColors: [0xFFAAAA, 0xAAFFAA, 0xFFFFAA]
+            decorationColors: [0xFFAAAA, 0xAAFFAA, 0xFFFFAA],
+            // New distinguishing features
+            groundColor: 0x88D169,
+            skyColor: 0x87CEEB,
+            fogColor: 0xC2E7FF,
+            fogDensity: 0.02,
+            uniqueDecoration: "flowers", // Special decoration type
+            particleEffect: "pollen", // Floating pollen particles
+            lightIntensity: 0.9
         },
         2: {
             name: "Forest Meadow",
@@ -55,7 +63,15 @@ export const CONFIG = {
             wallBaseTexture: "#E8D8B0",
             wallPatternColor: "#D8C8A0",
             frameColor: 0x755C48,
-            decorationColors: [0xAAFFAA, 0x99EE99, 0xDDFFBB]
+            decorationColors: [0xAAFFAA, 0x99EE99, 0xDDFFBB],
+            // New distinguishing features
+            groundColor: 0x6DAE56,
+            skyColor: 0x8CBED6,
+            fogColor: 0xA8C8D8,
+            fogDensity: 0.03,
+            uniqueDecoration: "mushrooms", // Mushrooms on the ground
+            particleEffect: "leafs", // Floating leafs
+            lightIntensity: 0.8
         },
         3: {
             name: "Pink Bloom",
@@ -63,7 +79,15 @@ export const CONFIG = {
             wallBaseTexture: "#FFDCE8",
             wallPatternColor: "#EEBED8",
             frameColor: 0x8B6144,
-            decorationColors: [0xFF9999, 0xFFCCDD, 0xFF88BB]
+            decorationColors: [0xFF9999, 0xFFCCDD, 0xFF88BB],
+            // New distinguishing features
+            groundColor: 0x95D882,
+            skyColor: 0xFFDDEE,
+            fogColor: 0xFFCCDD,
+            fogDensity: 0.025,
+            uniqueDecoration: "cherryBlossoms", // Cherry blossom petals
+            particleEffect: "petals", // Floating pink petals
+            lightIntensity: 1.0
         },
         4: {
             name: "Sky Blue",
@@ -71,7 +95,15 @@ export const CONFIG = {
             wallBaseTexture: "#D8E8FF",
             wallPatternColor: "#C8D8EE",
             frameColor: 0x8A6D4D,
-            decorationColors: [0x99CCFF, 0xAADDFF, 0xBBEEFF]
+            decorationColors: [0x99CCFF, 0xAADDFF, 0xBBEEFF],
+            // New distinguishing features
+            groundColor: 0x7AC95D,
+            skyColor: 0x66CCFF,
+            fogColor: 0xCCEEFF,
+            fogDensity: 0.015,
+            uniqueDecoration: "butterflies", // More butterflies
+            particleEffect: "bubbles", // Floating bubbles
+            lightIntensity: 1.1
         },
         5: {
             name: "Chocolate Rush",
@@ -79,7 +111,15 @@ export const CONFIG = {
             wallBaseTexture: "#D2B48C",
             wallPatternColor: "#C19A6B",
             frameColor: 0x5B3A24,
-            decorationColors: [0xAA6633, 0xCCBB99, 0xFFCC88]
+            decorationColors: [0xAA6633, 0xCCBB99, 0xFFCC88],
+            // New distinguishing features
+            groundColor: 0x73C154,
+            skyColor: 0xE8D0AA,
+            fogColor: 0xD0B088,
+            fogDensity: 0.035,
+            uniqueDecoration: "candies", // Candy decorations
+            particleEffect: "chocolateSparkles", // Chocolate sparkles
+            lightIntensity: 0.85
         },
         6: {
             name: "Lavender Fields",
@@ -87,7 +127,15 @@ export const CONFIG = {
             wallBaseTexture: "#E6E6FA",
             wallPatternColor: "#D6D6EA",
             frameColor: 0x7C6B5A,
-            decorationColors: [0xCCAAFF, 0xDDBBFF, 0xBB99EE]
+            decorationColors: [0xCCAAFF, 0xDDBBFF, 0xBB99EE],
+            // New distinguishing features
+            groundColor: 0x8ED26A,
+            skyColor: 0xBBAADD,
+            fogColor: 0xDDCCFF,
+            fogDensity: 0.02,
+            uniqueDecoration: "lavender", // Lavender plants
+            particleEffect: "purpleSparkles", // Purple sparkles
+            lightIntensity: 0.95
         },
         7: {
             name: "Mint Fresh",
@@ -95,7 +143,15 @@ export const CONFIG = {
             wallBaseTexture: "#D5FFEA",
             wallPatternColor: "#C5EEDB",
             frameColor: 0x8B7559,
-            decorationColors: [0x88FFCC, 0x99FFDD, 0xAAFFEE]
+            decorationColors: [0x88FFCC, 0x99FFDD, 0xAAFFEE],
+            // New distinguishing features
+            groundColor: 0x67C64F,
+            skyColor: 0xAAFFDD,
+            fogColor: 0xCCFFEE,
+            fogDensity: 0.022,
+            uniqueDecoration: "mintLeaves", // Mint leaves
+            particleEffect: "greenSparkles", // Green sparkles
+            lightIntensity: 1.05
         },
         8: {
             name: "Golden Summer",
@@ -103,7 +159,15 @@ export const CONFIG = {
             wallBaseTexture: "#FFFFC0",
             wallPatternColor: "#EEEEB0",
             frameColor: 0x937C5D,
-            decorationColors: [0xFFDD88, 0xFFEE99, 0xFFFFAA]
+            decorationColors: [0xFFDD88, 0xFFEE99, 0xFFFFAA],
+            // New distinguishing features
+            groundColor: 0x9ED87A,
+            skyColor: 0xFFDD88,
+            fogColor: 0xFFEEAA,
+            fogDensity: 0.018,
+            uniqueDecoration: "sunflowers", // Sunflowers
+            particleEffect: "goldDust", // Gold dust particles
+            lightIntensity: 1.2
         },
         9: {
             name: "Sunset Glow",
@@ -111,7 +175,15 @@ export const CONFIG = {
             wallBaseTexture: "#FFEEDD",
             wallPatternColor: "#EEDDCC",
             frameColor: 0x8F775A,
-            decorationColors: [0xFFAA88, 0xFFBB99, 0xFFCCAA]
+            decorationColors: [0xFFAA88, 0xFFBB99, 0xFFCCAA],
+            // New distinguishing features
+            groundColor: 0x85CB65,
+            skyColor: 0xFF9966,
+            fogColor: 0xFFBB99,
+            fogDensity: 0.028,
+            uniqueDecoration: "lanterns", // Floating lanterns
+            particleEffect: "embers", // Floating embers
+            lightIntensity: 0.9
         },
         10: {
             name: "Rainbow Celebration",
@@ -119,7 +191,15 @@ export const CONFIG = {
             wallBaseTexture: "#FFFFFF",
             wallPatternColor: "#F0F0F0",
             frameColor: 0xAA8866,
-            decorationColors: [0xFF88AA, 0xFFFF88, 0x88FFAA, 0x88CCFF, 0xCC88FF]
+            decorationColors: [0xFF88AA, 0xFFFF88, 0x88FFAA, 0x88CCFF, 0xCC88FF],
+            // New distinguishing features
+            groundColor: 0xA0DA81,
+            skyColor: 0xD8F0FF,
+            fogColor: 0xE0F0FF,
+            fogDensity: 0.01,
+            uniqueDecoration: "rainbowBanners", // Rainbow banners and flags
+            particleEffect: "confetti", // Confetti particles
+            lightIntensity: 1.3
         }
     },
     
