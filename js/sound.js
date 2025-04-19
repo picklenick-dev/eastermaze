@@ -28,10 +28,10 @@ export const SoundModule = {
         const soundsToLoad = {
             'gameStart': 'sounds/game-start.mp3',
             'hop': 'sounds/hop.mp3',
-            'collectEgg': 'sounds/collect-egg.mp3',
+            'collectEgg': 'sounds/collect-egg-subtle.mp3', // Endret til mer subtil lyd for egg-samling
             'levelComplete': 'sounds/level-complete.mp3',
             'gameComplete': 'sounds/game-complete.mp3',
-            'crocodileBite': 'sounds/collect-egg.mp3' // Midlertidig bruk egg-lyd for krokodille
+            'crocodileBite': 'sounds/collect-egg.mp3' // Fortsatt bruke den originale lyden for krokodillebit
         };
         
         // Last inn hver lydfil
@@ -119,7 +119,8 @@ export const SoundModule = {
     
     // Spill egg-samling lyd
     playCollectEgg: function() {
-        return this.play('collectEgg');
+        // Spill med lavere volum for mer subtil effekt
+        return this.play('collectEgg', { volume: 0.7 });
     },
     
     // Spill nivå-fullført lyd
@@ -134,7 +135,7 @@ export const SoundModule = {
     
     // Spill krokodille-bit lyd
     playCrocodileBite: function() {
-        // Spill med lavere pitch og volum for dyp krokodillelyd
+        // Spill med høyere volum for mer dramatisk krokodillelyd
         return this.play('crocodileBite', { volume: 1.2 });
     }
 };

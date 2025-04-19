@@ -101,9 +101,9 @@ export const CrocodileModule = {
         this.createCrocodileModel(crocodile);
         
         // Juster hastighet basert på nivå (raskere på høyere nivåer)
-        const levelSpeedFactor = 1 + (CONFIG.currentLevel - 1) * 0.1; // Øker hastigheten med 10% per nivå
-        const baseInterval = 1000 - (CONFIG.currentLevel - 1) * 50; // Reduser intervallet med 50ms per nivå
-        const intervalRange = 300 - (CONFIG.currentLevel - 1) * 20; // Mindre tilfeldighet på høyere nivåer
+        const levelSpeedFactor = 1.5 + (CONFIG.currentLevel - 1) * 0.15; // Øker hastigheten med 15% per nivå, starter på 1.5x
+        const baseInterval = 800 - (CONFIG.currentLevel - 1) * 50; // Raskere oppdateringsintervall (lavere verdi)
+        const intervalRange = 200 - (CONFIG.currentLevel - 1) * 20; // Mindre tilfeldighet på høyere nivåer
         
         // Legg til krokodille-data for AI og kollisjonsdeteksjon
         crocodile.userData = {
@@ -620,7 +620,7 @@ export const CrocodileModule = {
                 
                 // Beveg mot målet - juster hastighet basert på nivå
                 const speedFactor = crocodile.userData.speedFactor || 1;
-                const moveSpeed = 0.1 * speedFactor;
+                const moveSpeed = 0.15 * speedFactor; // Increased from 0.1 to 0.15
                 const newX = crocodile.userData.gridX + direction.x * moveSpeed;
                 const newZ = crocodile.userData.gridZ + direction.y * moveSpeed;
                 
@@ -666,7 +666,7 @@ export const CrocodileModule = {
             
             // Beveg mot spilleren - juster hastighet basert på nivå
             const speedFactor = crocodile.userData.speedFactor || 1;
-            const moveSpeed = 0.05 * speedFactor;
+            const moveSpeed = 0.08 * speedFactor; // Increased from 0.05 to 0.08
             const newX = crocodile.userData.gridX + direction.x * moveSpeed;
             const newZ = crocodile.userData.gridZ + direction.y * moveSpeed;
             

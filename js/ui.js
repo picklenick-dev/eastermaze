@@ -45,6 +45,12 @@ export const UIModule = {
                         Spill med lyd
                     </label>
                 </div>
+                <div class="sound-option">
+                    <label>
+                        <input type="checkbox" id="crocodiles-toggle" checked>
+                        Spill med krokodiller
+                    </label>
+                </div>
                 <button id="start-game-btn">Start spillet</button>
             </div>
         `;
@@ -53,6 +59,7 @@ export const UIModule = {
         document.getElementById('start-game-btn').addEventListener('click', () => {
             // Sett lyd-innstillingen basert på checkbox
             CONFIG.soundEnabled = document.getElementById('sound-toggle').checked;
+            CONFIG.crocodilesEnabled = document.getElementById('crocodiles-toggle').checked;
             this.removeMessages();
             this.showWelcomeMessage();
         });

@@ -42,8 +42,10 @@ export const GameModule = {
         // Opprette påskeegg
         EggModule.createEggs();
         
-        // Opprett krokodiller på alle nivåer
-        CrocodileModule.createCrocodiles();
+        // Opprett krokodiller hvis de er aktivert
+        if (CONFIG.crocodilesEnabled) {
+            CrocodileModule.createCrocodiles();
+        }
         
         // Reset retry status når vi går til nytt nivå
         if (!CONFIG.currentLevelRetried) {

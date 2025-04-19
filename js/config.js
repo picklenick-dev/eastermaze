@@ -17,6 +17,7 @@ export const CONFIG = {
     // Krokodille-relaterte variabler
     retryAvailable: true,
     currentLevelRetried: false,
+    crocodilesEnabled: true, // Option to enable or disable crocodiles
     
     // Timer-relaterte variabler
     timerActive: false,
