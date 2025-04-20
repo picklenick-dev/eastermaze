@@ -49,6 +49,12 @@ export const ParticleSystem = {
                     case "confetti":
                         this.animateConfettiParticle(particle);
                         break;
+                    case "snowflakes":
+                        this.animateSnowflakeParticle(particle);
+                        break;
+                    case "iceSparkles":
+                        this.animateIceSparkleParticle(particle);
+                        break;
                 }
             });
         }
@@ -89,6 +95,12 @@ export const ParticleSystem = {
                 break;
             case "confetti":
                 this.addConfetti(particleGroup, theme);
+                break;
+            case "snowflakes":
+                this.addSnowflakes(particleGroup, theme);
+                break;
+            case "iceSparkles":
+                this.addIceSparkles(particleGroup, theme);
                 break;
         }
         
@@ -308,6 +320,63 @@ export const ParticleSystem = {
             particle.rotation.x = Math.random() * Math.PI * 2;
             particle.rotation.y = Math.random() * Math.PI * 2;
             particle.rotation.z = Math.random() * Math.PI * 2;
+        }
+    },
+    
+    // Snowflakes particles animation
+    animateSnowflakeParticle: function(particle) {
+        // Gently falling snowflakes with slight drift
+        particle.position.y -= particle.userData.fallSpeed;
+        
+        // Oscillating drift to simulate wind
+        particle.userData.driftPhase += particle.userData.driftSpeed;
+        const windFactor = Math.sin(particle.userData.driftPhase) * 0.01;
+        
+        particle.position.x += Math.cos(particle.userData.driftDirection) * particle.userData.driftSpeed + windFactor;
+        particle.position.z += Math.sin(particle.userData.driftDirection) * particle.userData.driftSpeed;
+        
+        // Gentle rotation for snowflake spinning
+        particle.rotation.z += particle.userData.spinSpeed;
+        
+        // Reset if too low
+        if (particle.position.y < -0.5) {
+            particle.position.y = particle.userData.originalY;
+            // New random position
+            const radius = Math.random() * 45;
+            const angle = Math.random() * Math.PI * 2;
+            particle.position.x = Math.cos(angle) * radius;
+            particle.position.z = Math.sin(angle) * radius;
+        }
+    },
+    
+    // Ice sparkles particles animation
+    animateIceSparkleParticle: function(particle) {
+        // Ice sparkles with twinkling and subtle movement
+        particle.userData.pulsePhase += particle.userData.pulseSpeed;
+        const twinkleFactor = 0.5 + Math.abs(Math.sin(particle.userData.pulsePhase)) * 0.5;
+        
+        // Scale pulsing for twinkling effect
+        const originalSize = particle.userData.originalSize;
+        particle.scale.set(originalSize * twinkleFactor, originalSize * twinkleFactor, originalSize * twinkleFactor);
+        
+        // Adjust opacity for extra sparkle
+        particle.material.opacity = 0.5 + Math.sin(particle.userData.pulsePhase * 1.2) * 0.5;
+        
+        // Very subtle rising
+        particle.position.y += particle.userData.floatSpeed;
+        
+        // Gentle drift
+        particle.position.x += Math.cos(particle.userData.driftDirection) * particle.userData.driftSpeed;
+        particle.position.z += Math.sin(particle.userData.driftDirection) * particle.userData.driftSpeed;
+        
+        // Reset if too high
+        if (particle.position.y > particle.userData.maxHeight) {
+            particle.position.y = particle.userData.originalY;
+            // New random position
+            const radius = Math.random() * 40;
+            const angle = Math.random() * Math.PI * 2;
+            particle.position.x = Math.cos(angle) * radius;
+            particle.position.z = Math.sin(angle) * radius;
         }
     },
     
@@ -770,5 +839,177 @@ export const ParticleSystem = {
             
             group.add(confetti);
         }
-    }
+    },
+    
+    // Snowflakes falling (for Winter Wonderland - level 2)
+    addSnowflakes: function(group, theme) {
+        const snowflakeCount = 300;
+        
+        // Create different snowflake shapes for variety
+        const createSnowflakeTexture = (size) => {
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            
+            // Clear background
+            ctx.fillStyle = 'rgba(0,0,0,0)';
+            ctx.fillRect(0, 0, size, size);
+            
+            // Draw snowflake
+            ctx.fillStyle = '#FFFFFF';
+            const centerX = size / 2;
+            const centerY = size / 2;
+            
+            // Determine which type of snowflake to draw
+            const flakeType = Math.floor(Math.random() * 3);
+            
+            if (flakeType === 0) {
+                // Simple star-like snowflake
+                for (let i = 0; i < 6; i++) {
+                    const angle = (i / 6) * Math.PI * 2;
+                    ctx.save();
+                    ctx.translate(centerX, centerY);
+                    ctx.rotate(angle);
+                    
+                    // Main spoke
+                    ctx.fillRect(-1, 0, 2, size * 0.4);
+                    
+                    // Small branches
+                    ctx.fillRect(-size * 0.15, size * 0.1, size * 0.3, 1);
+                    ctx.fillRect(-size * 0.1, size * 0.2, size * 0.2, 1);
+                    
+                    ctx.restore();
+                }
+            } else if (flakeType === 1) {
+                // Circular snowflake
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, size * 0.1, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Spokes
+                for (let i = 0; i < 8; i++) {
+                    const angle = (i / 8) * Math.PI * 2;
+                    ctx.save();
+                    ctx.translate(centerX, centerY);
+                    ctx.rotate(angle);
+                    ctx.fillRect(-1, 0, 2, size * 0.35);
+                    ctx.restore();
+                }
+            } else {
+                // Simple dot snowflake
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, size * 0.15, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            // Create texture from canvas
+            const texture = new THREE.CanvasTexture(canvas);
+            return texture;
+        };
+        
+        for (let i = 0; i < snowflakeCount; i++) {
+            const snowflakeSize = Math.floor(16 + Math.random() * 48); // Size between 16 and 64
+            const snowflakeTexture = createSnowflakeTexture(snowflakeSize);
+            
+            const snowflakeMaterial = new THREE.SpriteMaterial({
+                map: snowflakeTexture,
+                transparent: true,
+                opacity: 0.8
+            });
+            
+            const snowflake = new THREE.Sprite(snowflakeMaterial);
+            
+            // Position randomly in the scene
+            const radius = Math.random() * 50;
+            const angle = Math.random() * Math.PI * 2;
+            const height = 1 + Math.random() * 10;
+            
+            snowflake.position.set(
+                Math.cos(angle) * radius,
+                height,
+                Math.sin(angle) * radius
+            );
+            
+            // Small random size - smaller flakes fall slower
+            const size = 0.05 + Math.random() * 0.2;
+            snowflake.scale.set(size, size, size);
+            
+            // Add animation data
+            snowflake.userData = {
+                fallSpeed: 0.005 + size * 0.05, // Larger flakes fall faster
+                spinSpeed: 0.005 + Math.random() * 0.01,
+                driftSpeed: 0.003 + Math.random() * 0.007,
+                driftDirection: Math.random() * Math.PI * 2,
+                originalY: height,
+                driftPhase: Math.random() * Math.PI * 2
+            };
+            
+            group.add(snowflake);
+        }
+    },
+    
+    // Ice sparkles (for Frosty Easter - level 5)
+    addIceSparkles: function(group, theme) {
+        const sparkleCount = 180;
+        
+        // Create ice sparkle texture
+        const iceSparkleTexture = TextureUtils.createStarTexture(0xA0DFFF);
+        
+        for (let i = 0; i < sparkleCount; i++) {
+            // Use theme colors with blue tints
+            const useThemeColor = Math.random() < 0.3; // 30% chance to use theme color
+            const sparkleColor = useThemeColor ? 
+                theme.decorationColors[Math.floor(Math.random() * theme.decorationColors.length)] : 
+                new THREE.Color(0xAADDFF).multiplyScalar(0.8 + Math.random() * 0.4).getHex();
+            
+            const sparkleMaterial = new THREE.SpriteMaterial({
+                map: iceSparkleTexture,
+                color: sparkleColor,
+                transparent: true,
+                opacity: 0.7,
+                blending: THREE.AdditiveBlending
+            });
+            
+            const sparkle = new THREE.Sprite(sparkleMaterial);
+            
+            // Position randomly in the scene, concentrated around ice sculptures and ground
+            let radius, angle, height;
+            
+            // 70% near ground, 30% higher up
+            if (Math.random() < 0.7) {
+                radius = Math.random() * 40;
+                angle = Math.random() * Math.PI * 2;
+                height = 0.1 + Math.random() * 1.5; // Close to ground
+            } else {
+                radius = Math.random() * 30;
+                angle = Math.random() * Math.PI * 2;
+                height = 1.5 + Math.random() * 4; // Higher up
+            }
+            
+            sparkle.position.set(
+                Math.cos(angle) * radius,
+                height,
+                Math.sin(angle) * radius
+            );
+            
+            // Small size with variation
+            const size = 0.05 + Math.random() * 0.15;
+            sparkle.scale.set(size, size, size);
+            
+            // Add animation data
+            sparkle.userData = {
+                originalSize: size,
+                pulsePhase: Math.random() * Math.PI * 2,
+                pulseSpeed: 0.08 + Math.random() * 0.15,
+                driftSpeed: 0.001 + Math.random() * 0.005,
+                driftDirection: Math.random() * Math.PI * 2,
+                originalY: height,
+                floatSpeed: 0.001 + Math.random() * 0.005,
+                maxHeight: height + 1 + Math.random() * 3
+            };
+            
+            group.add(sparkle);
+        }
+    },
 };

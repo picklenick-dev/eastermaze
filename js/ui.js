@@ -11,14 +11,20 @@ export const UIModule = {
 
     // Oppdaterer poengsummen
     updateScoreDisplay: function() {
-        document.getElementById('eggsFound').textContent = CONFIG.eggsFound;
-        document.getElementById('totalEggs').textContent = CONFIG.totalEggs;
-        document.getElementById('currentLevel').textContent = `${CONFIG.currentLevel} av ${CONFIG.totalLevels}`;
+        const eggsFound = document.getElementById('eggsFound');
+        const totalEggs = document.getElementById('totalEggs');
+        const currentLevel = document.getElementById('currentLevel');
+        
+        if (eggsFound) eggsFound.textContent = CONFIG.eggsFound;
+        if (totalEggs) totalEggs.textContent = CONFIG.totalEggs;
+        if (currentLevel) currentLevel.textContent = `${CONFIG.currentLevel} av ${CONFIG.totalLevels}`;
     },
     
     // Oppdaterer hjertedisplay (liv)
     updateLivesDisplay: function() {
         const heartsContainer = document.getElementById('hearts-container');
+        if (!heartsContainer) return; // Exit if element doesn't exist
+        
         const hearts = '❤️'.repeat(CONFIG.playerLives) + '🖤'.repeat(CONFIG.maxPlayerLives - CONFIG.playerLives);
         heartsContainer.textContent = hearts;
         
@@ -26,21 +32,27 @@ export const UIModule = {
         if (CONFIG.playerLives < CONFIG.maxPlayerLives) {
             heartsContainer.classList.add('pulse');
             setTimeout(() => {
-                heartsContainer.classList.remove('pulse');
+                const container = document.getElementById('hearts-container');
+                if (container) {
+                    container.classList.remove('pulse');
+                }
             }, 1000);
         }
     },
     
     // Oppdaterer timer-visningen
     updateTimerDisplay: function(seconds) {
+        const timerDisplay = document.getElementById('timer-display');
+        if (!timerDisplay) return; // Exit if element doesn't exist
+        
         const minutes = Math.floor(seconds / 60);
         const remainingSeconds = seconds % 60;
         const formattedTime = `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-        document.getElementById('timer-display').textContent = formattedTime;
+        timerDisplay.textContent = formattedTime;
         
         // Fjern warning-klassen hvis tiden er mer enn 10 sekunder
         if (seconds > 10) {
-            document.getElementById('timer-display').classList.remove('time-warning');
+            timerDisplay.classList.remove('time-warning');
         }
     },
     

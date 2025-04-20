@@ -144,6 +144,9 @@ export const GameModule = {
         // Øk nivånummeret
         CONFIG.currentLevel++;
         
+        // Fully reset the scene to use new level theme
+        RendererModule.clearScene();
+        
         // Restore player lives to maximum when completing a level
         CONFIG.playerLives = CONFIG.maxPlayerLives;
         

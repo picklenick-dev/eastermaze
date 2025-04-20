@@ -327,6 +327,12 @@ export const DecorationSystem = {
             case "rainbowBanners":
                 this.addRainbowBannerDecorations(decorationGroup, theme);
                 break;
+            case "snowmen":
+                this.addSnowmenDecorations(decorationGroup, theme);
+                break;
+            case "iceSculptures":
+                this.addIceSculpturesDecorations(decorationGroup, theme);
+                break;
         }
         
         CONFIG.scene.add(decorationGroup);
@@ -511,7 +517,490 @@ export const DecorationSystem = {
         }
     },
     
-    // Other decoration methods would be implemented here...
-    // Implementation of methods like:
-    // addCherryBlossomDecorations, addExtraButterflies, addCandyDecorations, etc.
+    // Add snowmen decorations for Winter Wonderland (level 2)
+    addSnowmenDecorations: function(group, theme) {
+        const snowmanCount = 15;
+        
+        for (let i = 0; i < snowmanCount; i++) {
+            const snowman = new THREE.Group();
+            
+            // Create bottom snowball (largest)
+            const bottomGeometry = new THREE.SphereGeometry(0.5, 16, 16);
+            const snowMaterial = new THREE.MeshLambertMaterial({ 
+                color: 0xFFFFFF,
+                emissive: 0x555555,
+                emissiveIntensity: 0.1
+            });
+            const bottomBall = new THREE.Mesh(bottomGeometry, snowMaterial);
+            bottomBall.position.y = 0.4;
+            snowman.add(bottomBall);
+            
+            // Create middle snowball
+            const middleGeometry = new THREE.SphereGeometry(0.35, 16, 16);
+            const middleBall = new THREE.Mesh(middleGeometry, snowMaterial);
+            middleBall.position.y = 1.0;
+            snowman.add(middleBall);
+            
+            // Create head (smallest snowball)
+            const headGeometry = new THREE.SphereGeometry(0.25, 16, 16);
+            const headBall = new THREE.Mesh(headGeometry, snowMaterial);
+            headBall.position.y = 1.45;
+            snowman.add(headBall);
+            
+            // Create carrot nose
+            const noseGeometry = new THREE.ConeGeometry(0.05, 0.2, 8);
+            const noseMaterial = new THREE.MeshLambertMaterial({ color: 0xFF7700 });
+            const nose = new THREE.Mesh(noseGeometry, noseMaterial);
+            nose.position.set(0, 1.45, 0.25);
+            nose.rotation.x = Math.PI / 2;
+            snowman.add(nose);
+            
+            // Create eyes
+            const eyeGeometry = new THREE.SphereGeometry(0.03, 8, 8);
+            const eyeMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
+            
+            const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+            leftEye.position.set(-0.08, 1.5, 0.2);
+            snowman.add(leftEye);
+            
+            const rightEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+            rightEye.position.set(0.08, 1.5, 0.2);
+            snowman.add(rightEye);
+            
+            // Create buttons
+            const buttonGeometry = new THREE.SphereGeometry(0.03, 8, 8);
+            const buttonMaterial = new THREE.MeshBasicMaterial({ color: 0x111111 });
+            
+            for (let b = 0; b < 3; b++) {
+                const button = new THREE.Mesh(buttonGeometry, buttonMaterial);
+                button.position.set(0, 0.95 + b * 0.12, 0.35);
+                snowman.add(button);
+            }
+            
+            // Optional scarf for some snowmen
+            if (Math.random() > 0.5) {
+                const scarfColor = theme.decorationColors[Math.floor(Math.random() * theme.decorationColors.length)];
+                const scarfGeometry = new THREE.BoxGeometry(0.6, 0.1, 0.4);
+                const scarfMaterial = new THREE.MeshLambertMaterial({ 
+                    color: scarfColor,
+                    emissive: new THREE.Color(scarfColor).multiplyScalar(0.2)
+                });
+                const scarf = new THREE.Mesh(scarfGeometry, scarfMaterial);
+                scarf.position.set(0, 1.2, 0);
+                snowman.add(scarf);
+                
+                // Add hanging part of scarf
+                const scarfHangGeometry = new THREE.BoxGeometry(0.1, 0.3, 0.1);
+                const scarfHang = new THREE.Mesh(scarfHangGeometry, scarfMaterial);
+                scarfHang.position.set(0.25, 1.05, 0.15);
+                snowman.add(scarfHang);
+            }
+            
+            // Add stick arms
+            const armGeometry = new THREE.CylinderGeometry(0.02, 0.02, 0.5, 4);
+            const armMaterial = new THREE.MeshLambertMaterial({ color: 0x8B4513 });
+            
+            const leftArm = new THREE.Mesh(armGeometry, armMaterial);
+            leftArm.position.set(-0.6, 1.0, 0);
+            leftArm.rotation.z = Math.PI / 4;
+            snowman.add(leftArm);
+            
+            const rightArm = new THREE.Mesh(armGeometry, armMaterial);
+            rightArm.position.set(0.6, 1.0, 0);
+            rightArm.rotation.z = -Math.PI / 4;
+            snowman.add(rightArm);
+            
+            // Position snowman randomly in scene
+            const radius = 8 + Math.random() * 35;
+            const angle = Math.random() * Math.PI * 2;
+            snowman.position.set(
+                Math.cos(angle) * radius,
+                -0.5, // Partially in the snow
+                Math.sin(angle) * radius
+            );
+            
+            // Random rotation and slight scale variation
+            snowman.rotation.y = Math.random() * Math.PI * 2;
+            const scale = 0.7 + Math.random() * 0.6;
+            snowman.scale.set(scale, scale, scale);
+            
+            group.add(snowman);
+        }
+        
+        // Add a special easter-themed snowman as a centerpiece
+        this.addEasterSnowman(group, theme);
+    },
+    
+    // Add a special Easter-themed snowman
+    addEasterSnowman: function(group, theme) {
+        const snowman = new THREE.Group();
+        
+        // Same basic snowman structure
+        const bottomGeometry = new THREE.SphereGeometry(0.6, 16, 16);
+        const snowMaterial = new THREE.MeshLambertMaterial({ 
+            color: 0xFFFFFF,
+            emissive: 0x555555,
+            emissiveIntensity: 0.1
+        });
+        const bottomBall = new THREE.Mesh(bottomGeometry, snowMaterial);
+        bottomBall.position.y = 0.5;
+        snowman.add(bottomBall);
+        
+        const middleGeometry = new THREE.SphereGeometry(0.45, 16, 16);
+        const middleBall = new THREE.Mesh(middleGeometry, snowMaterial);
+        middleBall.position.y = 1.2;
+        snowman.add(middleBall);
+        
+        const headGeometry = new THREE.SphereGeometry(0.3, 16, 16);
+        const headBall = new THREE.Mesh(headGeometry, snowMaterial);
+        headBall.position.y = 1.8;
+        snowman.add(headBall);
+        
+        // Carrot nose
+        const noseGeometry = new THREE.ConeGeometry(0.06, 0.25, 8);
+        const noseMaterial = new THREE.MeshLambertMaterial({ color: 0xFF7700 });
+        const nose = new THREE.Mesh(noseGeometry, noseMaterial);
+        nose.position.set(0, 1.8, 0.3);
+        nose.rotation.x = Math.PI / 2;
+        snowman.add(nose);
+        
+        // Eyes
+        const eyeGeometry = new THREE.SphereGeometry(0.04, 8, 8);
+        const eyeMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
+        
+        const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+        leftEye.position.set(-0.1, 1.85, 0.25);
+        snowman.add(leftEye);
+        
+        const rightEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+        rightEye.position.set(0.1, 1.85, 0.25);
+        snowman.add(rightEye);
+        
+        // Easter basket
+        const basketGeometry = new THREE.CylinderGeometry(0.3, 0.25, 0.3, 16);
+        const basketMaterial = new THREE.MeshLambertMaterial({ color: 0x8B4513 });
+        const basket = new THREE.Mesh(basketGeometry, basketMaterial);
+        basket.position.set(0.4, 1.2, 0);
+        snowman.add(basket);
+        
+        // Easter eggs in basket
+        const eggColors = [0xFF5555, 0x55FF55, 0x5555FF, 0xFFFF55, 0xFF55FF];
+        for (let i = 0; i < 5; i++) {
+            const eggGeometry = new THREE.SphereGeometry(0.08, 8, 8);
+            eggGeometry.scale(1, 1.3, 1); // Make egg-shaped
+            const eggMaterial = new THREE.MeshLambertMaterial({ 
+                color: eggColors[i],
+                emissive: eggColors[i],
+                emissiveIntensity: 0.2
+            });
+            const egg = new THREE.Mesh(eggGeometry, eggMaterial);
+            
+            // Position eggs randomly in basket
+            const angle = Math.random() * Math.PI * 2;
+            const r = Math.random() * 0.15;
+            egg.position.set(
+                0.4 + Math.cos(angle) * r,
+                1.3 + Math.random() * 0.1,
+                Math.sin(angle) * r
+            );
+            egg.rotation.set(
+                Math.random() * Math.PI,
+                Math.random() * Math.PI,
+                Math.random() * Math.PI
+            );
+            snowman.add(egg);
+        }
+        
+        // Bunny ears (Easter themed element)
+        const earGeometry = new THREE.CylinderGeometry(0.03, 0.03, 0.5, 8);
+        earGeometry.applyMatrix4(new THREE.Matrix4().makeScale(1, 1, 0.5));
+        const earMaterial = new THREE.MeshLambertMaterial({ color: 0xFFDDDD });
+        
+        const leftEar = new THREE.Mesh(earGeometry, earMaterial);
+        leftEar.position.set(-0.15, 2.2, 0);
+        leftEar.rotation.z = -Math.PI / 12;
+        snowman.add(leftEar);
+        
+        const rightEar = new THREE.Mesh(earGeometry, earMaterial);
+        rightEar.position.set(0.15, 2.2, 0);
+        rightEar.rotation.z = Math.PI / 12;
+        snowman.add(rightEar);
+        
+        // Position special snowman near center
+        snowman.position.set(
+            (Math.random() - 0.5) * 15,
+            -0.6,
+            (Math.random() - 0.5) * 15
+        );
+        
+        // Set rotation and scale
+        snowman.rotation.y = Math.random() * Math.PI * 2;
+        snowman.scale.set(1.2, 1.2, 1.2);
+        
+        group.add(snowman);
+    },
+    
+    // Add ice sculptures for Frosty Easter (level 5)
+    addIceSculpturesDecorations: function(group, theme) {
+        const sculptureCount = 12;
+        
+        // Create Easter-themed ice sculptures
+        for (let i = 0; i < sculptureCount; i++) {
+            const sculpture = new THREE.Group();
+            
+            // Choose which type of sculpture to create
+            const sculptureType = Math.floor(Math.random() * 3);
+            
+            // Ice material with slight blue tint and transparency
+            const iceMaterial = new THREE.MeshPhysicalMaterial({
+                color: 0xDDEEFF,
+                transparent: true,
+                opacity: 0.7,
+                roughness: 0.1,
+                transmission: 0.5,
+                clearcoat: 1.0,
+                clearcoatRoughness: 0.1
+            });
+            
+            switch (sculptureType) {
+                case 0: // Easter Bunny sculpture
+                    // Body
+                    const bodyGeometry = new THREE.SphereGeometry(0.5, 16, 16);
+                    bodyGeometry.scale(1, 1.2, 0.8);
+                    const body = new THREE.Mesh(bodyGeometry, iceMaterial);
+                    body.position.y = 0.5;
+                    sculpture.add(body);
+                    
+                    // Head
+                    const headGeometry = new THREE.SphereGeometry(0.35, 16, 16);
+                    const head = new THREE.Mesh(headGeometry, iceMaterial);
+                    head.position.set(0, 1.2, 0.2);
+                    sculpture.add(head);
+                    
+                    // Ears
+                    const earGeometry = new THREE.CylinderGeometry(0.06, 0.04, 0.8, 8);
+                    earGeometry.applyMatrix4(new THREE.Matrix4().makeScale(0.5, 1, 0.3));
+                    
+                    const leftEar = new THREE.Mesh(earGeometry, iceMaterial);
+                    leftEar.position.set(-0.15, 1.7, 0.1);
+                    leftEar.rotation.set(-Math.PI/10, 0, -Math.PI/10);
+                    sculpture.add(leftEar);
+                    
+                    const rightEar = new THREE.Mesh(earGeometry, iceMaterial);
+                    rightEar.position.set(0.15, 1.7, 0.1);
+                    rightEar.rotation.set(-Math.PI/10, 0, Math.PI/10);
+                    sculpture.add(rightEar);
+                    break;
+                    
+                case 1: // Easter Egg sculpture
+                    const eggGeometry = new THREE.SphereGeometry(0.7, 16, 16);
+                    eggGeometry.scale(1, 1.3, 1);
+                    const egg = new THREE.Mesh(eggGeometry, iceMaterial);
+                    egg.position.y = 0.7;
+                    
+                    // Add decorative patterns
+                    const patternGeometry = new THREE.TorusGeometry(0.4, 0.05, 8, 20);
+                    const patternMaterial = new THREE.MeshPhysicalMaterial({
+                        color: theme.decorationColors[Math.floor(Math.random() * theme.decorationColors.length)],
+                        transparent: true,
+                        opacity: 0.8,
+                        roughness: 0.2
+                    });
+                    
+                    const pattern1 = new THREE.Mesh(patternGeometry, patternMaterial);
+                    pattern1.position.y = 0.7;
+                    pattern1.rotation.x = Math.PI/2;
+                    sculpture.add(pattern1);
+                    
+                    const pattern2 = new THREE.Mesh(patternGeometry, patternMaterial);
+                    pattern2.position.y = 0.7;
+                    pattern2.rotation.x = Math.PI/4;
+                    pattern2.rotation.z = Math.PI/4;
+                    pattern2.scale.set(0.8, 0.8, 0.8);
+                    sculpture.add(pattern2);
+                    
+                    sculpture.add(egg);
+                    break;
+                    
+                case 2: // Easter Basket sculpture
+                    // Basket
+                    const basketGeometry = new THREE.CylinderGeometry(0.6, 0.5, 0.7, 16);
+                    const basketRimGeometry = new THREE.TorusGeometry(0.6, 0.1, 8, 24);
+                    
+                    const basket = new THREE.Mesh(basketGeometry, iceMaterial);
+                    basket.position.y = 0.4;
+                    sculpture.add(basket);
+                    
+                    const basketRim = new THREE.Mesh(basketRimGeometry, iceMaterial);
+                    basketRim.position.y = 0.75;
+                    basketRim.rotation.x = Math.PI/2;
+                    sculpture.add(basketRim);
+                    
+                    // Handle
+                    const handleGeometry = new THREE.TorusGeometry(0.4, 0.08, 8, 12, Math.PI);
+                    const handle = new THREE.Mesh(handleGeometry, iceMaterial);
+                    handle.position.y = 1.1;
+                    handle.rotation.x = -Math.PI/2;
+                    sculpture.add(handle);
+                    
+                    // Small Easter eggs in basket
+                    for (let j = 0; j < 6; j++) {
+                        const smallEggGeometry = new THREE.SphereGeometry(0.15, 8, 8);
+                        smallEggGeometry.scale(1, 1.3, 1);
+                        const smallEgg = new THREE.Mesh(smallEggGeometry, iceMaterial);
+                        
+                        // Position eggs randomly in basket
+                        const angle = Math.random() * Math.PI * 2;
+                        const r = Math.random() * 0.3;
+                        smallEgg.position.set(
+                            Math.cos(angle) * r,
+                            0.6 + Math.random() * 0.2,
+                            Math.sin(angle) * r
+                        );
+                        smallEgg.rotation.set(
+                            Math.random() * Math.PI,
+                            Math.random() * Math.PI,
+                            Math.random() * Math.PI
+                        );
+                        sculpture.add(smallEgg);
+                    }
+                    break;
+            }
+            
+            // Add a base for the sculpture
+            const baseGeometry = new THREE.CylinderGeometry(0.8, 1.0, 0.2, 16);
+            const base = new THREE.Mesh(baseGeometry, iceMaterial);
+            base.position.y = -0.1;
+            sculpture.add(base);
+            
+            // Position sculptures around scene
+            const radius = 10 + Math.random() * 30;
+            const angle = Math.random() * Math.PI * 2;
+            sculpture.position.set(
+                Math.cos(angle) * radius,
+                -0.5,
+                Math.sin(angle) * radius
+            );
+            
+            // Random rotation and scale
+            sculpture.rotation.y = Math.random() * Math.PI * 2;
+            const scale = 0.8 + Math.random() * 0.6;
+            sculpture.scale.set(scale, scale, scale);
+            
+            group.add(sculpture);
+        }
+        
+        // Add a central larger ice sculpture display
+        this.addCentralIceSculptureDisplay(group, theme);
+    },
+    
+    // Add a central ice sculpture display with multiple elements
+    addCentralIceSculptureDisplay: function(group, theme) {
+        const display = new THREE.Group();
+        
+        // Large circular base
+        const baseGeometry = new THREE.CylinderGeometry(5, 5.5, 0.3, 24);
+        const iceMaterial = new THREE.MeshPhysicalMaterial({
+            color: 0xDDEEFF,
+            transparent: true,
+            opacity: 0.7,
+            roughness: 0.1,
+            transmission: 0.5,
+            clearcoat: 1.0,
+            clearcoatRoughness: 0.1
+        });
+        const base = new THREE.Mesh(baseGeometry, iceMaterial);
+        base.position.y = -0.5;
+        display.add(base);
+        
+        // Central large Easter egg sculpture
+        const eggGeometry = new THREE.SphereGeometry(1.5, 24, 24);
+        eggGeometry.scale(1, 1.4, 1);
+        const egg = new THREE.Mesh(eggGeometry, iceMaterial);
+        egg.position.y = 1.5;
+        display.add(egg);
+        
+        // Add decorative spirals
+        for (let i = 0; i < 8; i++) {
+            const angle = (i / 8) * Math.PI * 2;
+            const spiralMaterial = new THREE.MeshPhysicalMaterial({
+                color: theme.decorationColors[i % theme.decorationColors.length],
+                transparent: true,
+                opacity: 0.8,
+                roughness: 0.2
+            });
+            
+            for (let j = 0; j < 20; j++) {
+                const segmentGeometry = new THREE.SphereGeometry(0.1, 8, 8);
+                const segment = new THREE.Mesh(segmentGeometry, spiralMaterial);
+                
+                const spiralRadius = 1.0 - j * 0.03;
+                const heightProgress = j / 20;
+                const spiralAngle = angle + heightProgress * Math.PI * 4;
+                
+                segment.position.set(
+                    Math.cos(spiralAngle) * spiralRadius,
+                    0.5 + heightProgress * 2.5,
+                    Math.sin(spiralAngle) * spiralRadius
+                );
+                display.add(segment);
+            }
+        }
+        
+        // Add small bunny sculptures around the base
+        for (let i = 0; i < 5; i++) {
+            const angle = (i / 5) * Math.PI * 2;
+            const bunnyGroup = new THREE.Group();
+            
+            // Body
+            const bodyGeometry = new THREE.SphereGeometry(0.3, 12, 12);
+            bodyGeometry.scale(1, 1.2, 0.8);
+            const body = new THREE.Mesh(bodyGeometry, iceMaterial);
+            body.position.y = 0.3;
+            bunnyGroup.add(body);
+            
+            // Head
+            const headGeometry = new THREE.SphereGeometry(0.2, 12, 12);
+            const head = new THREE.Mesh(headGeometry, iceMaterial);
+            head.position.set(0, 0.6, 0.1);
+            bunnyGroup.add(head);
+            
+            // Ears
+            const earGeometry = new THREE.CylinderGeometry(0.03, 0.02, 0.4, 6);
+            
+            const leftEar = new THREE.Mesh(earGeometry, iceMaterial);
+            leftEar.position.set(-0.08, 0.9, 0);
+            leftEar.rotation.z = -Math.PI/12;
+            bunnyGroup.add(leftEar);
+            
+            const rightEar = new THREE.Mesh(earGeometry, iceMaterial);
+            rightEar.position.set(0.08, 0.9, 0);
+            rightEar.rotation.z = Math.PI/12;
+            bunnyGroup.add(rightEar);
+            
+            // Position bunny around the base
+            bunnyGroup.position.set(
+                Math.cos(angle) * 3.5,
+                -0.25,
+                Math.sin(angle) * 3.5
+            );
+            
+            // Face toward center
+            bunnyGroup.rotation.y = angle + Math.PI;
+            
+            display.add(bunnyGroup);
+        }
+        
+        // Position the display near center but slightly offset
+        display.position.set(
+            (Math.random() - 0.5) * 10,
+            0,
+            (Math.random() - 0.5) * 10
+        );
+        
+        // Random rotation
+        display.rotation.y = Math.random() * Math.PI * 2;
+        
+        group.add(display);
+    },
 };

@@ -75,20 +75,21 @@ export const CONFIG = {
             lightIntensity: 0.9
         },
         2: {
-            name: "Forest Meadow",
-            wallColor: 0x8D7357,
-            wallBaseTexture: "#E8D8B0",
-            wallPatternColor: "#D8C8A0",
-            frameColor: 0x755C48,
-            decorationColors: [0xAAFFAA, 0x99EE99, 0xDDFFBB],
-            // New distinguishing features
-            groundColor: 0x6DAE56,
-            skyColor: 0x8CBED6,
-            fogColor: 0xA8C8D8,
+            name: "Winter Wonderland",
+            wallColor: 0x8D8D8D,
+            wallBaseTexture: "#F0F8FF",
+            wallPatternColor: "#E0F0FF",
+            frameColor: 0x6A8CAA,
+            decorationColors: [0xAAD4FF, 0xFFFFFF, 0xCCE5FF],
+            // Winter theme features
+            groundColor: 0xFFFFFF,
+            skyColor: 0xB0E2FF,
+            fogColor: 0xDCF2FF,
             fogDensity: 0.03,
-            uniqueDecoration: "mushrooms", // Mushrooms on the ground
-            particleEffect: "leafs", // Floating leafs
-            lightIntensity: 0.8
+            uniqueDecoration: "snowmen", // Snowmen decorations
+            particleEffect: "snowflakes", // Falling snow
+            lightIntensity: 0.9,
+            isWinterTheme: true
         },
         3: {
             name: "Pink Bloom",
@@ -123,20 +124,21 @@ export const CONFIG = {
             lightIntensity: 1.1
         },
         5: {
-            name: "Chocolate Rush",
-            wallColor: 0x6E4C36,
-            wallBaseTexture: "#D2B48C",
-            wallPatternColor: "#C19A6B",
-            frameColor: 0x5B3A24,
-            decorationColors: [0xAA6633, 0xCCBB99, 0xFFCC88],
-            // New distinguishing features
-            groundColor: 0x73C154,
-            skyColor: 0xE8D0AA,
-            fogColor: 0xD0B088,
-            fogDensity: 0.035,
-            uniqueDecoration: "candies", // Candy decorations
-            particleEffect: "chocolateSparkles", // Chocolate sparkles
-            lightIntensity: 0.85
+            name: "Frosty Easter",
+            wallColor: 0x6E7C8C,
+            wallBaseTexture: "#E8F4FF",
+            wallPatternColor: "#D5E8FF",
+            frameColor: 0x4D6A89,
+            decorationColors: [0x80B3FF, 0xC0DFFF, 0xA0CFFF],
+            // Winter Easter theme
+            groundColor: 0xF0F8FF,
+            skyColor: 0xADD8E6,
+            fogColor: 0xC9E3F3,
+            fogDensity: 0.04,
+            uniqueDecoration: "iceSculptures", // Ice Easter egg sculptures
+            particleEffect: "iceSparkles", // Ice sparkles
+            lightIntensity: 0.85,
+            isWinterTheme: true
         },
         6: {
             name: "Lavender Fields",

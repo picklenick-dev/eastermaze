@@ -53,36 +53,51 @@ export const HighScoreModule = {
         // Apply the crocodile difficulty modifier (1/4 points if no crocodiles)
         const difficultyModifier = CONFIG.crocodilesEnabled ? 1.0 : 0.25;
         
+        let wasComboIncreased = false;
+        
         // Only enable combo system when crocodiles are enabled
         if (CONFIG.crocodilesEnabled) {
             // Check if combo is active (egg collected within time window)
             if (CONFIG.lastEggTime > 0 && (now - CONFIG.lastEggTime) < CONFIG.comboTimeWindow) {
+                // Store old multiplier for comparison
+                const oldMultiplier = CONFIG.comboMultiplier;
+                
                 // Increase combo count and multiplier when eggs are collected in succession
                 CONFIG.comboCount++;
                 CONFIG.comboMultiplier = 1 + (CONFIG.comboCount * 0.5); // x1.5, x2, x2.5, etc.
                 
+                // Check if multiplier increased to a new whole number
+                wasComboIncreased = Math.floor(CONFIG.comboMultiplier) > Math.floor(oldMultiplier);
+                
                 // Flash the combo text to highlight increase
-                const comboElement = document.getElementById('combo');
-                comboElement.classList.remove('combo-flash');
-                setTimeout(() => comboElement.classList.add('combo-flash'), 10);
+                const comboDisplay = document.getElementById('combo-display');
+                if (comboDisplay) {
+                    comboDisplay.classList.remove('combo-flash');
+                    setTimeout(() => comboDisplay.classList.add('combo-flash'), 10);
+                }
                 
                 // Check if player reached a 3x combo - award an extra life
-                if (CONFIG.comboMultiplier >= 3 && CONFIG.comboMultiplier < 3.5) {
-                    // Only award extra life when exactly hitting 3x (not every time it's >= 3x)
-                    CONFIG.playerLives++;
+                // We specifically want to check if we just reached 3x (not every time it's >= 3x)
+                if (CONFIG.comboMultiplier >= 3 && oldMultiplier < 3) {
+                    // Only award extra life when exactly hitting 3x
+                    CONFIG.playerLives = Math.min(CONFIG.playerLives + 1, CONFIG.maxPlayerLives);
                     
                     // Update lives display
-                    document.getElementById('lives-display').textContent = CONFIG.playerLives;
+                    const livesDisplay = document.getElementById('lives-display');
+                    if (livesDisplay) {
+                        livesDisplay.textContent = CONFIG.playerLives;
+                    }
                     
                     // Show a celebratory message
                     UIModule.showMessage('3x Combo! +1 ekstra liv!', 2000);
                     
                     // Add a sparkle effect on the lives display
-                    const livesDisplay = document.getElementById('lives-display');
-                    livesDisplay.classList.add('sparkle-effect');
-                    setTimeout(() => {
-                        livesDisplay.classList.remove('sparkle-effect');
-                    }, 2000);
+                    if (livesDisplay) {
+                        livesDisplay.classList.add('sparkle-effect');
+                        setTimeout(() => {
+                            livesDisplay.classList.remove('sparkle-effect');
+                        }, 2000);
+                    }
                 }
                 
                 // Keep track of the max combo for level completion bonus
@@ -113,13 +128,21 @@ export const HighScoreModule = {
         this.updateScoreDisplay();
         this.updateComboDisplay();
         
+        // Show a celebratory message for higher combos (2x, 3x, etc.)
+        if (wasComboIncreased && CONFIG.comboMultiplier >= 2) {
+            const comboLevel = Math.floor(CONFIG.comboMultiplier);
+            UIModule.showMessage(`${comboLevel}x Combo!`, 1500);
+        }
+        
         // Start the combo timer animation only if crocodiles are enabled
         if (CONFIG.crocodilesEnabled) {
             this.startComboTimer();
         } else {
             // Reset combo bar to 0% when crocodiles are disabled
             const comboBar = document.getElementById('combo-bar');
-            comboBar.style.width = '0%';
+            if (comboBar) {
+                comboBar.style.width = '0%';
+            }
         }
         
         return points;
@@ -131,10 +154,11 @@ export const HighScoreModule = {
         const timeBonus = CONFIG.remainingTime * 10;
         
         // Calculate time-based speed bonus
-        // If the player completes the level in less than half the allotted time, they get an extra bonus
+        // If the player completes the level in less than 60% of the allotted time, they get an extra bonus
         let speedBonus = 0;
-        const levelConfig = LEVELS[CONFIG.currentLevel - 1];
-        const totalLevelTime = levelConfig.timeLimit || CONFIG.defaultTimeLimit;
+        
+        // Get the total level time from CONFIG.levelTimeLimits
+        const totalLevelTime = CONFIG.levelTimeLimits[CONFIG.currentLevel] || 60;
         const timeUsed = totalLevelTime - CONFIG.remainingTime;
         
         // Give speed bonus if player completes level in less than 60% of the allotted time
@@ -154,11 +178,16 @@ export const HighScoreModule = {
         // Combo bonus based on max combo achieved
         const comboBonus = CONFIG.maxCombo * 50;
         
+        // Calculate and show combo bonus message if significant
+        if (CONFIG.maxCombo >= 3) {
+            UIModule.showMessage(`Combo Bonus: +${comboBonus} poeng!`, 1800);
+        }
+        
         // Add bonuses to score
         const totalBonus = timeBonus + lifeBonus + comboBonus + speedBonus;
         CONFIG.score += totalBonus;
         CONFIG.levelScore += totalBonus;
-        CONFIG.totalScore += CONFIG.levelScore;
+        CONFIG.totalScore += totalBonus; // Add only the bonus to total score
         
         // Update UI
         this.updateScoreDisplay();
@@ -176,6 +205,8 @@ export const HighScoreModule = {
     startComboTimer: function() {
         // Reset the timer bar
         const comboBar = document.getElementById('combo-bar');
+        if (!comboBar) return; // Exit if element doesn't exist
+        
         comboBar.style.width = '100%';
         
         // Animate countdown only if combo exists
@@ -193,7 +224,11 @@ export const HighScoreModule = {
                 const remaining = Math.max(0, duration - elapsed);
                 const percent = (remaining / duration) * 100;
                 
-                comboBar.style.width = `${percent}%`;
+                // Check if element still exists (might have been removed during level transition)
+                const bar = document.getElementById('combo-bar');
+                if (bar) {
+                    bar.style.width = `${percent}%`;
+                }
                 
                 // If combo timer runs out, reset combo
                 if (remaining <= 0) {
@@ -208,19 +243,26 @@ export const HighScoreModule = {
     
     // Update the score display
     updateScoreDisplay: function() {
-        document.getElementById('score-display').textContent = CONFIG.totalScore;
+        const scoreDisplay = document.getElementById('score-display');
+        if (scoreDisplay) {
+            scoreDisplay.textContent = CONFIG.totalScore;
+        }
     },
     
     // Update the combo display
     updateComboDisplay: function() {
-        const comboText = CONFIG.comboCount > 0 
-            ? `x${CONFIG.comboMultiplier.toFixed(1)}` 
-            : 'x1.0';
-        document.getElementById('combo-display').textContent = comboText;
+        const comboDisplay = document.getElementById('combo-display');
+        if (comboDisplay) {
+            const comboText = CONFIG.comboCount > 0 
+                ? `x${CONFIG.comboMultiplier.toFixed(1)}` 
+                : 'x1.0';
+            comboDisplay.textContent = comboText;
+        }
         
         // Update the combo bar visibility
-        if (CONFIG.comboCount === 0) {
-            document.getElementById('combo-bar').style.width = '0%';
+        const comboBar = document.getElementById('combo-bar');
+        if (comboBar && CONFIG.comboCount === 0) {
+            comboBar.style.width = '0%';
         }
     },
     

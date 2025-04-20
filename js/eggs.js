@@ -976,12 +976,24 @@ export const EggModule = {
         canvas.height = 64;
         const ctx = canvas.getContext('2d');
         
-        // Draw points text
+        // Draw points text with combo info if applicable
+        const comboMultiplier = CONFIG.comboMultiplier;
+        
         ctx.fillStyle = `rgb(${color >> 16 & 255}, ${color >> 8 & 255}, ${color & 255})`;
-        ctx.font = 'bold 32px Arial';
+        ctx.font = 'bold 24px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(`+${points}`, canvas.width / 2, canvas.height / 2);
+        
+        if (comboMultiplier > 1) {
+            // Show combo multiplier and points
+            ctx.fillText(`+${points}`, canvas.width / 2, canvas.height / 2 - 10);
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText(`x${comboMultiplier.toFixed(1)} Combo!`, canvas.width / 2, canvas.height / 2 + 12);
+        } else {
+            // Just show points with larger font when no combo
+            ctx.font = 'bold 32px Arial';
+            ctx.fillText(`+${points}`, canvas.width / 2, canvas.height / 2);
+        }
         
         // Create sprite with the text
         const texture = new THREE.CanvasTexture(canvas);
