@@ -578,8 +578,13 @@ const PlayerModule = {
         // Don't move if game is over, level is completed, or timer isn't active
         if (CONFIG.isGameOver || CONFIG.isLevelCompleted || !CONFIG.timerActive) return;
         
-        const keyboardMoveSpeed = 0.10; // Base movement speed for keyboard
-        const joystickMoveSpeed = 0.08; // Reduced speed for joystick controls
+        const baseKeyboardMoveSpeed = 0.10; // Base movement speed for keyboard
+        const baseJoystickMoveSpeed = 0.08; // Reduced speed for joystick controls
+        
+        // Apply speed multiplier from config
+        const keyboardMoveSpeed = baseKeyboardMoveSpeed * CONFIG.speedMultiplier;
+        const joystickMoveSpeed = baseJoystickMoveSpeed * CONFIG.speedMultiplier;
+        
         let newX = this.playerPosition.x;
         let newZ = this.playerPosition.z;
         let moved = false;

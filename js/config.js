@@ -234,6 +234,7 @@ export const CONFIG = {
         ArrowLeft: false,
         ArrowRight: false
     },
+    speedMultiplier: 1, // Speed multiplier for the rabbit, can be increased for faster movement
     
     // Fargepalett for påske
     colors: {

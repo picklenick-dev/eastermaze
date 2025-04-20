@@ -93,11 +93,14 @@ export const UIModule = {
                     <button id="start-game-btn">Start spillet</button>
                     <button id="view-leaderboard-btn" class="secondary-btn">Vis poengtavle</button>
                 </div>
-                <div id="level-selector-container" style="display: none;">
-                    <label for="level-selector">Velg nivå:</label>
-                    <select id="level-selector">
-                        ${LEVELS.map((level, index) => `<option value="${index + 1}">Nivå ${index + 1}</option>`).join('')}
-                    </select>
+                <div id="level-selector-container" style="display: block;">
+                 
+                    <div class="sound-option" id="speed-boost-container" style="display: none;">
+                        <label>
+                            <input type="checkbox" id="speed-toggle">
+                            2x Kaninfart
+                        </label>
+                    </div>
                 </div>
             </div>
         `;
@@ -108,6 +111,8 @@ export const UIModule = {
             CONFIG.soundEnabled = document.getElementById('sound-toggle').checked;
             CONFIG.crocodilesEnabled = document.getElementById('crocodiles-toggle').checked;
             CONFIG.enhancedGraphics = document.getElementById('graphics-toggle').checked;
+            // Set speed multiplier based on checkbox
+            CONFIG.speedMultiplier = document.getElementById('speed-toggle').checked ? 2 : 1;
             this.removeMessages();
             this.showWelcomeMessage();
         });
@@ -120,28 +125,51 @@ export const UIModule = {
             });
         });
 
-        // Add event listener for Shift key to toggle level selector
+        // Add event listener for Shift key to toggle speed boost
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Shift') {
                 this.debugModeActive = true;
-                document.getElementById('level-selector-container').style.display = 'block';
+                document.getElementById('speed-boost-container').style.display = 'block';
             }
         });
 
         document.addEventListener('keyup', (e) => {
             if (e.key === 'Shift') {
                 this.debugModeActive = false;
-                document.getElementById('level-selector-container').style.display = 'none';
+                document.getElementById('speed-boost-container').style.display = 'none';
             }
+        });
+
+        // Add event listener for speed toggle changes
+        document.getElementById('speed-toggle').addEventListener('change', (e) => {
+            CONFIG.speedMultiplier = e.target.checked ? 2 : 1;
         });
 
         // Add event listener for level selector
         document.getElementById('level-selector').addEventListener('change', (e) => {
-            CONFIG.currentLevel = parseInt(e.target.value, 10);
+            const selectedLevel = parseInt(e.target.value, 10) + 1;
             
             // Load the selected level when dropdown changes
             this.removeMessages();
-            GameModule.resetGame();
+            
+            // Instead of directly manipulating the game objects, use GameModule to handle level loading
+            // Set the current level in CONFIG
+            CONFIG.currentLevel = selectedLevel;
+            
+            // Reset all necessary game state variables
+            CONFIG.eggsFound = 0;
+            CONFIG.totalEggs = 0;
+            CONFIG.isGameOver = false;
+            CONFIG.isLevelCompleted = false;
+            CONFIG.timerActive = false;
+            CONFIG.playerLives = CONFIG.maxPlayerLives;
+            CONFIG.currentLevelRetried = false;
+            CONFIG.score = 0;
+            CONFIG.levelScore = 0;
+            CONFIG.maxCombo = 0;
+            HighScoreModule.resetLevelScore();
+            
+            // Use GameModule to load the selected level
             GameModule.loadLevel();
             this.showWelcomeMessage();
         });
