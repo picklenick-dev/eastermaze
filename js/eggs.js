@@ -863,7 +863,8 @@ export const EggModule = {
                     Math.pow(playerPosition.z - egg.userData.gridZ, 2)
                 );
                 
-                if (distance < 0.7) {
+                // Increased collection radius from 0.7 to 0.9 to make egg collection more reliable
+                if (distance < 0.9) {
                     egg.userData.collected = true;
                     
                     // Play egg collection sound
