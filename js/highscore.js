@@ -89,7 +89,7 @@ export const HighScoreModule = {
                     }
                     
                     // Show a celebratory message
-                    UIModule.showMessage('3x Combo! +1 ekstra liv!', 2000);
+                    // UIModule.showMessage('3x Combo! +1 ekstra liv!', 2000);
                     
                     // Add a sparkle effect on the lives display
                     if (livesDisplay) {
@@ -129,10 +129,10 @@ export const HighScoreModule = {
         this.updateComboDisplay();
         
         // Show a celebratory message for higher combos (2x, 3x, etc.)
-        if (wasComboIncreased && CONFIG.comboMultiplier >= 2) {
-            const comboLevel = Math.floor(CONFIG.comboMultiplier);
-            UIModule.showMessage(`${comboLevel}x Combo!`, 1500);
-        }
+        // if (wasComboIncreased && CONFIG.comboMultiplier >= 2) {
+        //     const comboLevel = Math.floor(CONFIG.comboMultiplier);
+        //     UIModule.showMessage(`${comboLevel}x Combo!`, 1500);
+        // }
         
         // Start the combo timer animation only if crocodiles are enabled
         if (CONFIG.crocodilesEnabled) {
@@ -169,7 +169,7 @@ export const HighScoreModule = {
             speedBonus = Math.round(500 * speedFactor); // Up to 500 points for extremely fast completion
             
             // Display a message about the speed bonus
-            UIModule.showMessage(`Hurtig! +${speedBonus} poeng hastighetsbonus!`, 1500);
+            //UIModule.showMessage(`Hurtig! +${speedBonus} poeng hastighetsbonus!`, 1500);
         }
         
         // Add bonus for not losing lives (100 points per life)
@@ -179,9 +179,9 @@ export const HighScoreModule = {
         const comboBonus = CONFIG.maxCombo * 50;
         
         // Calculate and show combo bonus message if significant
-        if (CONFIG.maxCombo >= 3) {
-            UIModule.showMessage(`Combo Bonus: +${comboBonus} poeng!`, 1800);
-        }
+        // if (CONFIG.maxCombo >= 3) {
+        //     UIModule.showMessage(`Combo Bonus: +${comboBonus} poeng!`, 1800);
+        // }
         
         // Add bonuses to score
         const totalBonus = timeBonus + lifeBonus + comboBonus + speedBonus;
