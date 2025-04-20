@@ -95,7 +95,21 @@ export const UIModule = {
             CONFIG.soundEnabled = document.getElementById('sound-toggle').checked;
             CONFIG.crocodilesEnabled = document.getElementById('crocodiles-toggle').checked;
             CONFIG.enhancedGraphics = document.getElementById('graphics-toggle').checked;
+            
+            // Store the selected level before removing messages
+            const selectedLevel = parseInt(document.getElementById('level-selector').value, 10);
+            
             this.removeMessages();
+            
+            // Reset the game with the selected level if in debug mode
+            if (this.debugModeActive && selectedLevel > 0) {
+                // Reset game but keep the selected level
+                GameModule.resetGame();
+                CONFIG.currentLevel = selectedLevel;
+                // Reload the level with the new level number
+                GameModule.loadLevel();
+            }
+            
             this.showWelcomeMessage();
         });
         

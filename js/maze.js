@@ -143,11 +143,19 @@ export const MazeModule = {
         const ctx = canvas.getContext('2d');
         
         // Base color (light pastel)
-        ctx.fillStyle = theme.wallBaseTexture; // Use theme-specific base color
+        // Properly convert hex wall base color to string if it's a number
+        const baseColor = typeof theme.wallBaseTexture === 'number' ?
+            '#' + new THREE.Color(theme.wallBaseTexture).getHexString() :
+            theme.wallBaseTexture;
+        ctx.fillStyle = baseColor;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
         // Add subtle texture
-        ctx.fillStyle = theme.wallPatternColor; // Use theme-specific pattern color
+        // Properly convert hex wall pattern color to string if it's a number
+        const patternColor = typeof theme.wallPatternColor === 'number' ?
+            '#' + new THREE.Color(theme.wallPatternColor).getHexString() :
+            theme.wallPatternColor;
+        ctx.fillStyle = patternColor;
         
         for (let i = 0; i < 200; i++) {
             const x = Math.random() * canvas.width;
@@ -215,8 +223,13 @@ export const MazeModule = {
         canvas.height = 32;
         const ctx = canvas.getContext('2d');
         
-        // Base wood color
-        const frameColorHex = theme.frameColor.toString(16).padStart(6, '0');
+        // Base wood color - FIX: Properly convert hex color to string
+        const frameColor = new THREE.Color(theme.frameColor);
+        const frameColorHex = 
+            Math.floor(frameColor.r * 255).toString(16).padStart(2, '0') + 
+            Math.floor(frameColor.g * 255).toString(16).padStart(2, '0') + 
+            Math.floor(frameColor.b * 255).toString(16).padStart(2, '0');
+        
         ctx.fillStyle = `#${frameColorHex}`;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
@@ -286,11 +299,14 @@ export const MazeModule = {
         const ribbonGeometry = new THREE.BoxGeometry(1.5, 0.2, 0.05);
         
         // Use theme-specific decoration color
-        const ribbonColor = theme.decorationColors[Math.floor(Math.random() * theme.decorationColors.length)];
+        const colorIndex = Math.floor(Math.random() * theme.decorationColors.length);
+        const ribbonColor = theme.decorationColors[colorIndex];
+        // Create a proper THREE.Color object from the hex value
+        const ribbonThreeColor = new THREE.Color(ribbonColor);
         
         const ribbonMaterial = new THREE.MeshLambertMaterial({
             color: ribbonColor,
-            emissive: new THREE.Color(ribbonColor).multiplyScalar(0.2)
+            emissive: ribbonThreeColor.clone().multiplyScalar(0.2)
         });
         
         const ribbon = new THREE.Mesh(ribbonGeometry, ribbonMaterial);
@@ -339,10 +355,15 @@ export const MazeModule = {
         
         // Flower petals
         const petalCount = 5 + Math.floor(Math.random() * 3);
-        const petalColor = theme.decorationColors[Math.floor(Math.random() * theme.decorationColors.length)];
+        const colorIndex = Math.floor(Math.random() * theme.decorationColors.length);
+        const petalColor = theme.decorationColors[colorIndex];
+        // Create proper THREE.Color object for emissive
+        const petalThreeColor = new THREE.Color(petalColor);
+        const petalEmissiveColor = petalThreeColor.clone().multiplyScalar(0.15);
+        
         const petalMaterial = new THREE.MeshLambertMaterial({ 
             color: petalColor,
-            emissive: new THREE.Color(petalColor).multiplyScalar(0.15)
+            emissive: petalEmissiveColor
         });
         
         for (let i = 0; i < petalCount; i++) {
@@ -420,11 +441,15 @@ export const MazeModule = {
             eggGeometry.scale(1, 1.3, 1);
             
             // Use theme-specific decoration color
-            const eggColor = theme.decorationColors[Math.floor(Math.random() * theme.decorationColors.length)];
+            const colorIndex = Math.floor(Math.random() * theme.decorationColors.length);
+            const eggColor = theme.decorationColors[colorIndex];
+            // Create proper THREE.Color object for emissive
+            const eggThreeColor = new THREE.Color(eggColor);
+            const eggEmissiveColor = eggThreeColor.clone().multiplyScalar(0.2);
             
             const eggMaterial = new THREE.MeshLambertMaterial({ 
                 color: eggColor,
-                emissive: new THREE.Color(eggColor).multiplyScalar(0.2)
+                emissive: eggEmissiveColor
             });
             
             const egg = new THREE.Mesh(eggGeometry, eggMaterial);

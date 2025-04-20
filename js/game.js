@@ -159,6 +159,9 @@ export const GameModule = {
         // Oppdater UI
         UIModule.updateScoreDisplay();
         
+        // Clear and recreate ground and decorations for the new level theme
+        RendererModule.clearScene();
+        
         // Last inn det nye nivået
         this.loadLevel();
         

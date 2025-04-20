@@ -108,16 +108,21 @@ export const RendererModule = {
             canvas.height = 512;
             const ctx = canvas.getContext('2d');
             
-            // Use theme-specific ground color
-            const groundColorHex = currentTheme.groundColor.toString(16).padStart(6, '0');
+            // Use theme-specific ground color - FIX: Properly convert hex value to string
+            const groundColor = new THREE.Color(currentTheme.groundColor);
+            const groundColorHex = 
+                Math.floor(groundColor.r * 255).toString(16).padStart(2, '0') + 
+                Math.floor(groundColor.g * 255).toString(16).padStart(2, '0') + 
+                Math.floor(groundColor.b * 255).toString(16).padStart(2, '0');
             ctx.fillStyle = `#${groundColorHex}`;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
             // Add some texture variation - darker shade of the ground color
             const darkerShade = new THREE.Color(currentTheme.groundColor).multiplyScalar(0.9);
-            const darkerHex = Math.floor(darkerShade.r * 255).toString(16).padStart(2, '0') + 
-                             Math.floor(darkerShade.g * 255).toString(16).padStart(2, '0') + 
-                             Math.floor(darkerShade.b * 255).toString(16).padStart(2, '0');
+            const darkerHex = 
+                Math.floor(darkerShade.r * 255).toString(16).padStart(2, '0') + 
+                Math.floor(darkerShade.g * 255).toString(16).padStart(2, '0') + 
+                Math.floor(darkerShade.b * 255).toString(16).padStart(2, '0');
             ctx.fillStyle = `#${darkerHex}`;
             
             for (let i = 0; i < 100; i++) {
@@ -149,7 +154,10 @@ export const RendererModule = {
         } else {
             // Simple ground for performance mode
             const groundGeometry = new THREE.PlaneGeometry(100, 100);
-            const groundMaterial = new THREE.MeshStandardMaterial({ color: CONFIG.colors.ground });
+            const groundMaterial = new THREE.MeshStandardMaterial({ 
+                // Use theme-specific ground color if available, or fall back to default
+                color: currentTheme.groundColor || CONFIG.colors.ground 
+            });
             const ground = new THREE.Mesh(groundGeometry, groundMaterial);
             ground.rotation.x = -Math.PI / 2;
             ground.position.y = -0.5;
@@ -165,8 +173,10 @@ export const RendererModule = {
         // Add some clouds in the sky
         this.addClouds();
         
-        // Add butterflies that fly around
-        this.addButterflies(currentTheme);
+        // Add butterflies that fly around - but not in snow/ice worlds
+        if (!currentTheme.isSnowTheme) {
+            this.addButterflies(currentTheme);
+        }
         
         // Add level-specific decorations
         if (currentTheme.uniqueDecoration) {
@@ -176,6 +186,122 @@ export const RendererModule = {
         // Add theme-specific particle effects
         if (currentTheme.particleEffect) {
             this.addParticleEffects(currentTheme);
+        }
+    },
+     // Add theme-specific particle effects
+     addParticleEffects: function(theme) {
+        const particleGroup = new THREE.Group();
+        
+        // Handle different particle effect types
+        switch(theme.particleEffect) {
+            case "pollen":
+                this.addPollenParticles(particleGroup, theme);
+                break;
+            case "leafs":
+                this.addFloatingLeafs(particleGroup, theme);
+                break;
+            case "petals":
+                this.addCherryBlossomPetals(particleGroup, theme);
+                break;
+            case "bubbles":
+                this.addFloatingBubbles(particleGroup, theme);
+                break;
+            case "chocolateSparkles":
+                this.addChocolateSparkles(particleGroup, theme);
+                break;
+            case "purpleSparkles":
+                this.addColoredSparkles(particleGroup, theme, theme.decorationColors[0]);
+                break;
+            case "greenSparkles":
+                this.addColoredSparkles(particleGroup, theme, theme.decorationColors[0]);
+                break;
+            case "goldDust":
+                this.addGoldDust(particleGroup, theme);
+                break;
+            case "embers":
+                this.addFloatingEmbers(particleGroup, theme);
+                break;
+            case "confetti":
+                this.addConfetti(particleGroup, theme);
+                break;
+        }
+        
+        CONFIG.scene.add(particleGroup);
+        this.particles = particleGroup;
+    },
+
+     
+    // Helper to create a circular texture
+    createCircleTexture: function(color, size = 64) {
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        
+        // Draw circle
+        const radius = size / 2;
+        ctx.beginPath();
+        ctx.arc(radius, radius, radius, 0, Math.PI * 2);
+        
+        // Fill with gradient
+        const gradient = ctx.createRadialGradient(
+            radius, radius, 0,
+            radius, radius, radius
+        );
+        
+        // Convert hex color to rgb
+        const r = (color >> 16) & 255;
+        const g = (color >> 8) & 255;
+        const b = color & 255;
+        
+        gradient.addColorStop(0, `rgba(${r},${g},${b},1)`);
+        gradient.addColorStop(1, `rgba(${r},${g},${b},0)`);
+        
+        ctx.fillStyle = gradient;
+        ctx.fill();
+        
+        const texture = new THREE.CanvasTexture(canvas);
+        return texture;
+    },
+
+    addPollenParticles: function(group, theme) {
+        const particleCount = 200;
+        
+        // Create a small sprite material for the pollen
+        const pollenTexture = this.createCircleTexture(0xFFFFAA, 32);
+        const pollenMaterial = new THREE.SpriteMaterial({
+            map: pollenTexture,
+            transparent: true,
+            opacity: 0.6
+        });
+        
+        for (let i = 0; i < particleCount; i++) {
+            const pollen = new THREE.Sprite(pollenMaterial);
+            
+            // Small random size
+            const size = 0.05 + Math.random() * 0.1;
+            pollen.scale.set(size, size, size);
+            
+            // Position randomly in the scene
+            const radius = Math.random() * 50;
+            const angle = Math.random() * Math.PI * 2;
+            const height = Math.random() * 5;
+            
+            pollen.position.set(
+                Math.cos(angle) * radius,
+                height,
+                Math.sin(angle) * radius
+            );
+            
+            // Add animation data
+            pollen.userData = {
+                floatSpeed: 0.002 + Math.random() * 0.004,
+                driftSpeed: 0.005 + Math.random() * 0.01,
+                driftDirection: Math.random() * Math.PI * 2,
+                bobPhase: Math.random() * Math.PI * 2
+            };
+            
+            group.add(pollen);
         }
     },
     
@@ -321,6 +447,9 @@ export const RendererModule = {
             case "flowers":
                 this.addFlowerDecorations(decorationGroup, theme);
                 break;
+            case "snowflakes":
+                this.addSnowflakeDecorations(decorationGroup, theme);
+                break;
             case "mushrooms":
                 this.addMushroomDecorations(decorationGroup, theme);
                 break;
@@ -337,6 +466,9 @@ export const RendererModule = {
             case "lavender":
                 this.addLavenderDecorations(decorationGroup, theme);
                 break;
+            case "icicles":
+                this.addIcicleDecorations(decorationGroup, theme);
+                break; 
             case "mintLeaves":
                 this.addMintLeafDecorations(decorationGroup, theme);
                 break;
@@ -355,361 +487,158 @@ export const RendererModule = {
         this.uniqueDecorations = decorationGroup;
     },
     
-    // Add flower decorations scattered around the scene (for level 1)
-    addFlowerDecorations: function(group, theme) {
-        const flowerCount = 40;
+    // Implement the missing addExtraButterflies function for Level 4
+    addExtraButterflies: function(group, theme) {
+        // Create additional butterflies for the butterfly-themed level
+        const butterflyCount = 15; // More butterflies than the standard decoration
         
-        for (let i = 0; i < flowerCount; i++) {
-            const flowerGroup = new THREE.Group();
-            
-            // Create stem
-            const stemGeometry = new THREE.CylinderGeometry(0.05, 0.05, 0.8, 8);
-            const stemMaterial = new THREE.MeshLambertMaterial({ color: 0x00AA00 });
-            const stem = new THREE.Mesh(stemGeometry, stemMaterial);
-            stem.position.y = 0.4;
-            flowerGroup.add(stem);
-            
-            // Create flower head using theme colors
-            const flowerColor = theme.decorationColors[Math.floor(Math.random() * theme.decorationColors.length)];
-            const petalGeometry = new THREE.SphereGeometry(0.2, 8, 8);
-            const petalMaterial = new THREE.MeshLambertMaterial({ 
-                color: flowerColor,
-                emissive: new THREE.Color(flowerColor).multiplyScalar(0.3)
+        const createButterfly = () => {
+            // Butterfly body
+            const bodyGeometry = new THREE.SphereGeometry(0.1, 8, 8);
+            const bodyMaterial = new THREE.MeshLambertMaterial({ 
+                color: theme.decorationColors[Math.floor(Math.random() * theme.decorationColors.length)]
             });
             
-            // Create flower petals
-            for (let p = 0; p < 5; p++) {
-                const petal = new THREE.Mesh(petalGeometry, petalMaterial);
-                const angle = (p / 5) * Math.PI * 2;
-                petal.position.set(
-                    Math.cos(angle) * 0.2,
-                    0.8,
-                    Math.sin(angle) * 0.2
-                );
-                petal.scale.set(0.7, 0.2, 0.7);
-                flowerGroup.add(petal);
-            }
+            const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
             
-            // Center of flower
-            const centerGeometry = new THREE.SphereGeometry(0.15, 8, 8);
-            const centerMaterial = new THREE.MeshLambertMaterial({ color: 0xFFFF00 });
-            const center = new THREE.Mesh(centerGeometry, centerMaterial);
-            center.position.y = 0.8;
-            flowerGroup.add(center);
-            
-            // Position flower randomly in the scene, but not too close to center
-            const radius = 10 + Math.random() * 30;
-            const angle = Math.random() * Math.PI * 2;
-            flowerGroup.position.set(
-                Math.cos(angle) * radius,
-                -0.4, // Half-buried in the ground
-                Math.sin(angle) * radius
-            );
-            
-            // Random rotation and slight scale variation
-            flowerGroup.rotation.y = Math.random() * Math.PI * 2;
-            const scale = 0.8 + Math.random() * 0.5;
-            flowerGroup.scale.set(scale, scale, scale);
-            
-            group.add(flowerGroup);
-        }
-    },
-    
-    // Add mushroom decorations for Forest Meadow (level 2)
-    addMushroomDecorations: function(group, theme) {
-        const mushroomCount = 30;
-        
-        for (let i = 0; i < mushroomCount; i++) {
-            const mushroom = new THREE.Group();
-            
-            // Create stem
-            const stemGeometry = new THREE.CylinderGeometry(0.1, 0.15, 0.5, 8);
-            const stemMaterial = new THREE.MeshLambertMaterial({ color: 0xEEEEEE });
-            const stem = new THREE.Mesh(stemGeometry, stemMaterial);
-            stem.position.y = 0.25;
-            mushroom.add(stem);
-            
-            // Create cap
-            const capGeometry = new THREE.SphereGeometry(0.3, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2);
-            const capColor = theme.decorationColors[Math.floor(Math.random() * theme.decorationColors.length)];
-            const capMaterial = new THREE.MeshLambertMaterial({ 
-                color: capColor,
-                emissive: new THREE.Color(capColor).multiplyScalar(0.1)
-            });
-            const cap = new THREE.Mesh(capGeometry, capMaterial);
-            cap.position.y = 0.5;
-            cap.scale.set(1.5, 1, 1.5);
-            mushroom.add(cap);
-            
-            // Add spots to cap
-            const spotCount = 3 + Math.floor(Math.random() * 5);
-            for (let s = 0; s < spotCount; s++) {
-                const spotGeometry = new THREE.CircleGeometry(0.05 + Math.random() * 0.05, 8);
-                const spotMaterial = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
-                const spot = new THREE.Mesh(spotGeometry, spotMaterial);
-                
-                // Position on cap
-                const spotAngle = Math.random() * Math.PI * 2;
-                const spotRadius = Math.random() * 0.25;
-                spot.position.set(
-                    Math.cos(spotAngle) * spotRadius,
-                    0.51, // Slightly above cap
-                    Math.sin(spotAngle) * spotRadius
-                );
-                spot.rotation.x = -Math.PI / 2; // Face upward
-                
-                mushroom.add(spot);
-            }
-            
-            // Position mushroom randomly in the scene
-            const radius = 8 + Math.random() * 35;
-            const angle = Math.random() * Math.PI * 2;
-            mushroom.position.set(
-                Math.cos(angle) * radius,
-                -0.4, // Half-buried in the ground
-                Math.sin(angle) * radius
-            );
-            
-            // Random rotation and scale
-            mushroom.rotation.y = Math.random() * Math.PI * 2;
-            const scale = 0.6 + Math.random() * 0.8;
-            mushroom.scale.set(scale, scale, scale);
-            
-            group.add(mushroom);
-        }
-        
-        // Add a mushroom circle (fairy ring) as a special feature
-        this.addMushroomCircle(group, theme);
-    },
-    
-    // Add a circle of mushrooms (fairy ring) as a special feature for Forest Meadow (level 2)
-    addMushroomCircle: function(group, theme) {
-        const circleRadius = 8;
-        const mushroomCount = 12;
-        
-        // Random position for the circle
-        const circleX = (Math.random() - 0.5) * 30;
-        const circleZ = (Math.random() - 0.5) * 30;
-        
-        for (let i = 0; i < mushroomCount; i++) {
-            const angle = (i / mushroomCount) * Math.PI * 2;
-            
-            const mushroom = new THREE.Group();
-            
-            // Create stem
-            const stemGeometry = new THREE.CylinderGeometry(0.1, 0.15, 0.5, 8);
-            const stemMaterial = new THREE.MeshLambertMaterial({ color: 0xEEEEEE });
-            const stem = new THREE.Mesh(stemGeometry, stemMaterial);
-            stem.position.y = 0.25;
-            mushroom.add(stem);
-            
-            // Create cap
-            const capGeometry = new THREE.SphereGeometry(0.3, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2);
-            // Use a consistent color for the circle
-            const capMaterial = new THREE.MeshLambertMaterial({ 
-                color: theme.decorationColors[0],
-                emissive: new THREE.Color(theme.decorationColors[0]).multiplyScalar(0.2)
-            });
-            const cap = new THREE.Mesh(capGeometry, capMaterial);
-            cap.position.y = 0.5;
-            cap.scale.set(1.5, 1, 1.5);
-            mushroom.add(cap);
-            
-            // Position in circle
-            mushroom.position.set(
-                circleX + Math.cos(angle) * circleRadius,
-                -0.4,
-                circleZ + Math.sin(angle) * circleRadius
-            );
-            
-            // Face toward center
-            mushroom.rotation.y = angle + Math.PI;
-            
-            // All mushrooms in ring are similar size
-            const scale = 0.9 + Math.random() * 0.2;
-            mushroom.scale.set(scale, scale, scale);
-            
-            group.add(mushroom);
-        }
-    },
-    
-    // Add theme-specific particle effects
-    addParticleEffects: function(theme) {
-        const particleGroup = new THREE.Group();
-        
-        // Handle different particle effect types
-        switch(theme.particleEffect) {
-            case "pollen":
-                this.addPollenParticles(particleGroup, theme);
-                break;
-            case "leafs":
-                this.addFloatingLeafs(particleGroup, theme);
-                break;
-            case "petals":
-                this.addCherryBlossomPetals(particleGroup, theme);
-                break;
-            case "bubbles":
-                this.addFloatingBubbles(particleGroup, theme);
-                break;
-            case "chocolateSparkles":
-                this.addChocolateSparkles(particleGroup, theme);
-                break;
-            case "purpleSparkles":
-                this.addColoredSparkles(particleGroup, theme, theme.decorationColors[0]);
-                break;
-            case "greenSparkles":
-                this.addColoredSparkles(particleGroup, theme, theme.decorationColors[0]);
-                break;
-            case "goldDust":
-                this.addGoldDust(particleGroup, theme);
-                break;
-            case "embers":
-                this.addFloatingEmbers(particleGroup, theme);
-                break;
-            case "confetti":
-                this.addConfetti(particleGroup, theme);
-                break;
-        }
-        
-        CONFIG.scene.add(particleGroup);
-        this.particles = particleGroup;
-    },
-    
-    // Pollen particles floating in the air (for Spring Garden - level 1)
-    addPollenParticles: function(group, theme) {
-        const particleCount = 200;
-        
-        // Create a small sprite material for the pollen
-        const pollenTexture = this.createCircleTexture(0xFFFFAA, 32);
-        const pollenMaterial = new THREE.SpriteMaterial({
-            map: pollenTexture,
-            transparent: true,
-            opacity: 0.6
-        });
-        
-        for (let i = 0; i < particleCount; i++) {
-            const pollen = new THREE.Sprite(pollenMaterial);
-            
-            // Small random size
-            const size = 0.05 + Math.random() * 0.1;
-            pollen.scale.set(size, size, size);
-            
-            // Position randomly in the scene
-            const radius = Math.random() * 50;
-            const angle = Math.random() * Math.PI * 2;
-            const height = Math.random() * 5;
-            
-            pollen.position.set(
-                Math.cos(angle) * radius,
-                height,
-                Math.sin(angle) * radius
-            );
-            
-            // Add animation data
-            pollen.userData = {
-                floatSpeed: 0.002 + Math.random() * 0.004,
-                driftSpeed: 0.005 + Math.random() * 0.01,
-                driftDirection: Math.random() * Math.PI * 2,
-                bobPhase: Math.random() * Math.PI * 2
-            };
-            
-            group.add(pollen);
-        }
-    },
-    
-    // Floating leaf particles (for Forest Meadow - level 2)
-    addFloatingLeafs: function(group, theme) {
-        const leafCount = 50;
-        
-        // Create simple leaf shape
-        const leafShape = new THREE.Shape();
-        leafShape.moveTo(0, 0);
-        leafShape.bezierCurveTo(0.5, 0.5, 1, -0.5, 1.5, 0);
-        leafShape.bezierCurveTo(1, 0.5, 0.5, -0.5, 0, 0);
-        
-        const leafGeometry = new THREE.ShapeGeometry(leafShape);
-        
-        // Create leaves with varying shades of green
-        for (let i = 0; i < leafCount; i++) {
-            // Choose from theme colors or default to green shades
-            const leafColor = theme.decorationColors[Math.floor(Math.random() * theme.decorationColors.length)];
-            
-            const leafMaterial = new THREE.MeshLambertMaterial({
-                color: leafColor,
+            // Wings - use a simple plane geometry
+            const wingGeometry = new THREE.PlaneGeometry(0.5, 0.3);
+            const wingMaterial = new THREE.MeshLambertMaterial({ 
+                color: theme.decorationColors[Math.floor(Math.random() * theme.decorationColors.length)],
                 side: THREE.DoubleSide,
                 transparent: true,
                 opacity: 0.8
             });
             
-            const leaf = new THREE.Mesh(leafGeometry, leafMaterial);
+            const leftWing = new THREE.Mesh(wingGeometry, wingMaterial);
+            leftWing.position.set(-0.25, 0, 0);
+            leftWing.rotation.y = Math.PI / 4;
             
-            // Position randomly in the scene
-            const radius = Math.random() * 45;
-            const angle = Math.random() * Math.PI * 2;
-            const height = 1 + Math.random() * 5;
+            const rightWing = new THREE.Mesh(wingGeometry, wingMaterial);
+            rightWing.position.set(0.25, 0, 0);
+            rightWing.rotation.y = -Math.PI / 4;
             
-            leaf.position.set(
-                Math.cos(angle) * radius,
-                height,
-                Math.sin(angle) * radius
-            );
+            // Create butterfly group
+            const butterfly = new THREE.Group();
+            butterfly.add(body);
+            butterfly.add(leftWing);
+            butterfly.add(rightWing);
             
-            // Random rotation for natural look
-            leaf.rotation.x = Math.random() * Math.PI * 2;
-            leaf.rotation.y = Math.random() * Math.PI * 2;
-            leaf.rotation.z = Math.random() * Math.PI * 2;
-            
-            // Scale to appropriate size
-            const scale = 0.2 + Math.random() * 0.2;
-            leaf.scale.set(scale, scale, scale);
-            
-            // Add animation data for floating movement
-            leaf.userData = {
-                fallSpeed: 0.005 + Math.random() * 0.01,
-                spinSpeed: 0.01 + Math.random() * 0.02,
-                driftSpeed: 0.01 + Math.random() * 0.02,
-                driftDirection: Math.random() * Math.PI * 2,
-                originalY: height,
-                spinAxis: new THREE.Vector3(
-                    Math.random() - 0.5,
-                    Math.random() - 0.5,
-                    Math.random() - 0.5
-                ).normalize()
+            // Add random animation variables
+            butterfly.userData = {
+                flapSpeed: 0.05 + Math.random() * 0.1,
+                flapPhase: Math.random() * Math.PI * 2,
+                altitude: 1 + Math.random() * 5, // Flying height
+                hoverSpeed: 0.01 + Math.random() * 0.02,
+                hoverPhase: Math.random() * Math.PI * 2,
+                direction: Math.random() * Math.PI * 2, // Random flight direction
+                speed: 0.01 + Math.random() * 0.03, // Flight speed
+                turnSpeed: 0.005 + Math.random() * 0.01,
+                timeToNextChange: Math.random() * 200
             };
             
-            group.add(leaf);
-        }
-    },
-    
-    // Cherry blossom petals falling (for Pink Bloom - level 3)
-    addCherryBlossomPetals: function(group, theme) {
-        const petalCount = 150;
+            return butterfly;
+        };
         
-        // Create a simple petal shape
-        const petalShape = new THREE.Shape();
-        petalShape.moveTo(0, 0);
-        petalShape.bezierCurveTo(0.5, 0.5, 1, 0.5, 1, 0);
-        petalShape.bezierCurveTo(1, -0.5, 0.5, -0.5, 0, 0);
-        
-        const petalGeometry = new THREE.ShapeGeometry(petalShape);
-        
-        for (let i = 0; i < petalCount; i++) {
-            // Use theme colors (pinks)
-            const petalColor = theme.decorationColors[Math.floor(Math.random() * theme.decorationColors.length)];
+        // Create specified number of butterflies
+        for (let i = 0; i < butterflyCount; i++) {
+            const butterfly = createButterfly();
             
-            const petalMaterial = new THREE.MeshLambertMaterial({
-                color: petalColor,
-                side: THREE.DoubleSide,
+            // Position butterflies widely around the scene
+            butterfly.position.set(
+                (Math.random() - 0.5) * 60, // Wider spread
+                butterfly.userData.altitude,
+                (Math.random() - 0.5) * 60  // Wider spread
+            );
+            
+            group.add(butterfly);
+        }
+        
+        // Store reference to animate these butterflies
+        this.extraButterflies = group;
+    },
+
+    addCherryBlossomDecorations: function(group, theme) {
+        // Create cherry blossom trees
+        const treeCount = 8;
+        const treeRadius = 45;
+        
+        // Create cherry blossom trees around the maze
+        for (let i = 0; i < treeCount; i++) {
+            const angle = (i / treeCount) * Math.PI * 2;
+            const x = Math.cos(angle) * treeRadius;
+            const z = Math.sin(angle) * treeRadius;
+            
+            // Create tree trunk
+            const trunkGeometry = new THREE.CylinderGeometry(0.5, 0.7, 5, 8);
+            const trunkMaterial = new THREE.MeshLambertMaterial({ color: 0x8B4513 });
+            const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
+            trunk.position.set(0, 2.5, 0);
+            trunk.castShadow = true;
+            
+            // Create tree foliage (pink cherry blossoms)
+            const foliageGeometry = new THREE.SphereGeometry(2.5, 8, 8);
+            const foliageMaterial = new THREE.MeshLambertMaterial({ color: 0xFFB7C5 });
+            const foliage = new THREE.Mesh(foliageGeometry, foliageMaterial);
+            foliage.position.set(0, 3, 0);
+            foliage.castShadow = true;
+            
+            // Group the trunk and foliage together
+            const tree = new THREE.Group();
+            tree.add(trunk);
+            tree.add(foliage);
+            tree.position.set(x, 0, z);
+            
+            // Add animation properties
+            tree.userData = {
+                swayPhase: Math.random() * Math.PI * 2,
+                swaySpeed: 0.01 + Math.random() * 0.01,
+                swayAmount: 0.05 + Math.random() * 0.05
+            };
+            
+            group.add(tree);
+        }
+        
+        // Add falling cherry blossom petals
+        const petalCount = 100;
+        
+        // Create a canvas for petal texture if not provided
+        const textureSize = 64;
+        const canvas = document.createElement('canvas');
+        canvas.width = textureSize;
+        canvas.height = textureSize;
+        const ctx = canvas.getContext('2d');
+        
+        // Draw a simple petal shape
+        ctx.fillStyle = '#FFDBED';
+        ctx.beginPath();
+        ctx.arc(textureSize/2, textureSize/2, textureSize/3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#FFB7C5';
+        ctx.beginPath();
+        ctx.arc(textureSize/2, textureSize/2, textureSize/6, 0, Math.PI * 2);
+        ctx.fill();
+        
+        const petalTexture = new THREE.CanvasTexture(canvas);
+        
+        // Create individual falling petals
+        for (let i = 0; i < petalCount; i++) {
+            const spriteMaterial = new THREE.SpriteMaterial({ 
+                map: petalTexture,
                 transparent: true,
-                opacity: 0.9
+                opacity: 0.8
             });
             
-            const petal = new THREE.Mesh(petalGeometry, petalMaterial);
+            const petal = new THREE.Sprite(spriteMaterial);
             
-            // Position randomly in the scene
-            const radius = Math.random() * 45;
+            // Randomize size
+            const scale = 0.2 + Math.random() * 0.3;
+            petal.scale.set(scale, scale, scale);
+            
+            // Random positioning within a radius
+            const radius = Math.random() * 50;
             const angle = Math.random() * Math.PI * 2;
-            const height = 1 + Math.random() * 6;
+            const height = 5 + Math.random() * 20;
             
             petal.position.set(
                 Math.cos(angle) * radius,
@@ -717,411 +646,137 @@ export const RendererModule = {
                 Math.sin(angle) * radius
             );
             
-            // Random rotation
-            petal.rotation.x = -Math.PI / 2 + (Math.random() - 0.5) * 0.5; // Mostly horizontal
-            petal.rotation.y = Math.random() * Math.PI * 2;
-            petal.rotation.z = Math.random() * Math.PI * 2;
-            
-            // Small scale
-            const scale = 0.1 + Math.random() * 0.1;
-            petal.scale.set(scale, scale, scale);
-            
-            // Add animation data
+            // Add animation properties
             petal.userData = {
-                fallSpeed: 0.003 + Math.random() * 0.007,
-                spinSpeed: 0.01 + Math.random() * 0.03,
-                driftSpeed: 0.007 + Math.random() * 0.01,
+                fallSpeed: 0.01 + Math.random() * 0.05,
+                driftSpeed: 0.01 + Math.random() * 0.02,
                 driftDirection: Math.random() * Math.PI * 2,
-                originalY: height,
-                bobPhase: Math.random() * Math.PI * 2
+                wobbleSpeed: 0.03 + Math.random() * 0.05,
+                wobbleAmount: 0.1 + Math.random() * 0.5,
+                wobblePhase: Math.random() * Math.PI * 2,
+                originalY: height
             };
             
             group.add(petal);
         }
     },
-    
-    // Floating bubbles (for Sky Blue - level 4)
-    addFloatingBubbles: function(group, theme) {
-        const bubbleCount = 80;
+
+    // Add flower decorations for the first level's Spring Garden theme
+    addFlowerDecorations: function(group, theme) {
+        const flowerCount = 40;
         
-        for (let i = 0; i < bubbleCount; i++) {
-            const bubbleGeometry = new THREE.SphereGeometry(1, 16, 16);
+        for (let i = 0; i < flowerCount; i++) {
+            const flower = new THREE.Group();
             
-            // Create a semi-transparent bubble material
-            const bubbleMaterial = new THREE.MeshPhongMaterial({
-                color: 0xFFFFFF,
-                transparent: true,
-                opacity: 0.2,
-                shininess: 100,
-                specular: 0xFFFFFF,
-                side: THREE.DoubleSide
-            });
+            // Create flower center
+            const centerGeometry = new THREE.SphereGeometry(0.15, 8, 8);
+            const centerMaterial = new THREE.MeshLambertMaterial({ color: 0xFFF44F }); // Yellow center
+            const flowerCenter = new THREE.Mesh(centerGeometry, centerMaterial);
+            flower.add(flowerCenter);
             
-            const bubble = new THREE.Mesh(bubbleGeometry, bubbleMaterial);
+            // Create petals
+            const petalCount = 5 + Math.floor(Math.random() * 3); // 5-7 petals
             
-            // Position randomly in the scene
-            const radius = Math.random() * 40;
+            // Use theme decoration colors for petals
+            const petalColor = theme.decorationColors[Math.floor(Math.random() * theme.decorationColors.length)];
+            const petalMaterial = new THREE.MeshLambertMaterial({ color: petalColor });
+            
+            for (let p = 0; p < petalCount; p++) {
+                const petalGeometry = new THREE.CircleGeometry(0.2, 8);
+                const petal = new THREE.Mesh(petalGeometry, petalMaterial);
+                
+                const angle = (p / petalCount) * Math.PI * 2;
+                const distance = 0.2;
+                
+                petal.position.set(
+                    Math.cos(angle) * distance,
+                    0,
+                    Math.sin(angle) * distance
+                );
+                
+                petal.rotation.x = -Math.PI / 2;
+                petal.rotation.y = angle;
+                
+                flower.add(petal);
+            }
+            
+            // Add stem
+            const stemHeight = 0.5 + Math.random() * 0.5;
+            const stemGeometry = new THREE.CylinderGeometry(0.02, 0.02, stemHeight, 8);
+            const stemMaterial = new THREE.MeshLambertMaterial({ color: 0x2D9F30 }); // Green stem
+            const stem = new THREE.Mesh(stemGeometry, stemMaterial);
+            stem.position.y = -stemHeight / 2;
+            flower.add(stem);
+            
+            // Position flower randomly
+            const radius = 5 + Math.random() * 40;
             const angle = Math.random() * Math.PI * 2;
-            const height = Math.random() * 5;
             
-            bubble.position.set(
+            flower.position.set(
                 Math.cos(angle) * radius,
-                height,
-                Math.sin(angle) * radius
-            );
-            
-            // Small random size
-            const size = 0.1 + Math.random() * 0.3;
-            bubble.scale.set(size, size, size);
-            
-            // Add animation data
-            bubble.userData = {
-                floatSpeed: 0.01 + Math.random() * 0.02,
-                driftSpeed: 0.004 + Math.random() * 0.008,
-                driftDirection: Math.random() * Math.PI * 2,
-                originalY: height,
-                maxHeight: 6 + Math.random() * 4
-            };
-            
-            group.add(bubble);
-        }
-    },
-    
-    // Chocolate sparkles (for Chocolate Rush - level 5)
-    addChocolateSparkles: function(group, theme) {
-        const sparkleCount = 100;
-        
-        // Create sparkle texture
-        const sparkleTexture = this.createStarTexture(0xAA6633);
-        
-        for (let i = 0; i < sparkleCount; i++) {
-            // Use theme colors (chocolatey browns)
-            const sparkleColor = theme.decorationColors[Math.floor(Math.random() * theme.decorationColors.length)];
-            
-            const sparkleMaterial = new THREE.SpriteMaterial({
-                map: sparkleTexture,
-                color: sparkleColor,
-                transparent: true,
-                opacity: 0.7
-            });
-            
-            const sparkle = new THREE.Sprite(sparkleMaterial);
-            
-            // Position randomly closer to the ground
-            const radius = Math.random() * 40;
-            const angle = Math.random() * Math.PI * 2;
-            const height = 0.1 + Math.random() * 2; // Lower to the ground
-            
-            sparkle.position.set(
-                Math.cos(angle) * radius,
-                height,
-                Math.sin(angle) * radius
-            );
-            
-            // Small size
-            const size = 0.1 + Math.random() * 0.2;
-            sparkle.scale.set(size, size, size);
-            
-            // Add animation data
-            sparkle.userData = {
-                pulsePhase: Math.random() * Math.PI * 2,
-                pulseSpeed: 0.05 + Math.random() * 0.1,
-                driftSpeed: 0.003 + Math.random() * 0.006,
-                driftDirection: Math.random() * Math.PI * 2,
-                originalY: height
-            };
-            
-            group.add(sparkle);
-        }
-    },
-    
-    // Colored sparkles for various levels (purple, green, etc.)
-    addColoredSparkles: function(group, theme, baseColor) {
-        const sparkleCount = 120;
-        
-        // Create sparkle texture using the color
-        const sparkleTexture = this.createStarTexture(baseColor);
-        
-        for (let i = 0; i < sparkleCount; i++) {
-            // Use theme colors but focus on the base color
-            const useBaseColor = Math.random() < 0.7; // 70% chance to use base color
-            const sparkleColor = useBaseColor ? baseColor : theme.decorationColors[Math.floor(Math.random() * theme.decorationColors.length)];
-            
-            const sparkleMaterial = new THREE.SpriteMaterial({
-                map: sparkleTexture,
-                color: sparkleColor,
-                transparent: true,
-                opacity: 0.8
-            });
-            
-            const sparkle = new THREE.Sprite(sparkleMaterial);
-            
-            // Position randomly in the scene
-            const radius = Math.random() * 45;
-            const angle = Math.random() * Math.PI * 2;
-            const height = Math.random() * 4;
-            
-            sparkle.position.set(
-                Math.cos(angle) * radius,
-                height,
-                Math.sin(angle) * radius
-            );
-            
-            // Small size with variation
-            const size = 0.08 + Math.random() * 0.15;
-            sparkle.scale.set(size, size, size);
-            
-            // Add animation data
-            sparkle.userData = {
-                pulsePhase: Math.random() * Math.PI * 2,
-                pulseSpeed: 0.07 + Math.random() * 0.1,
-                driftSpeed: 0.002 + Math.random() * 0.01,
-                driftDirection: Math.random() * Math.PI * 2,
-                originalY: height,
-                floatSpeed: 0.005 + Math.random() * 0.01
-            };
-            
-            group.add(sparkle);
-        }
-    },
-    
-    // Gold dust particles (for Golden Summer - level 8)
-    addGoldDust: function(group, theme) {
-        const particleCount = 200;
-        
-        // Create a small sprite material for gold dust
-        const dustTexture = this.createCircleTexture(0xFFDD55, 16);
-        
-        for (let i = 0; i < particleCount; i++) {
-            // Alternate between gold shades from theme
-            const dustColor = theme.decorationColors[Math.floor(Math.random() * theme.decorationColors.length)];
-            
-            const dustMaterial = new THREE.SpriteMaterial({
-                map: dustTexture,
-                color: dustColor,
-                transparent: true,
-                opacity: 0.6 + Math.random() * 0.4
-            });
-            
-            const dust = new THREE.Sprite(dustMaterial);
-            
-            // Very small random size
-            const size = 0.03 + Math.random() * 0.08;
-            dust.scale.set(size, size, size);
-            
-            // Position randomly in the scene, more concentrated in sunlit areas
-            const radius = Math.random() * 40;
-            const angle = Math.random() * Math.PI * 2;
-            const height = Math.random() * 6;
-            
-            dust.position.set(
-                Math.cos(angle) * radius,
-                height,
-                Math.sin(angle) * radius
-            );
-            
-            // Add animation data
-            dust.userData = {
-                floatSpeed: 0.001 + Math.random() * 0.003,
-                driftSpeed: 0.002 + Math.random() * 0.008,
-                driftDirection: Math.random() * Math.PI * 2,
-                pulsePhase: Math.random() * Math.PI * 2,
-                pulseSpeed: 0.1 + Math.random() * 0.2
-            };
-            
-            group.add(dust);
-        }
-    },
-    
-    // Floating embers (for Sunset Glow - level 9)
-    addFloatingEmbers: function(group, theme) {
-        const emberCount = 80;
-        
-        // Create ember texture
-        const emberTexture = this.createCircleTexture(0xFF5500, 32);
-        
-        for (let i = 0; i < emberCount; i++) {
-            // Use theme colors (oranges and reds)
-            const emberColor = theme.decorationColors[Math.floor(Math.random() * theme.decorationColors.length)];
-            
-            const emberMaterial = new THREE.SpriteMaterial({
-                map: emberTexture,
-                color: emberColor,
-                transparent: true,
-                opacity: 0.7,
-                blending: THREE.AdditiveBlending
-            });
-            
-            const ember = new THREE.Sprite(emberMaterial);
-            
-            // Position randomly in the air
-            const radius = Math.random() * 40;
-            const angle = Math.random() * Math.PI * 2;
-            const height = 0.5 + Math.random() * 6;
-            
-            ember.position.set(
-                Math.cos(angle) * radius,
-                height,
-                Math.sin(angle) * radius
-            );
-            
-            // Small size
-            const size = 0.05 + Math.random() * 0.1;
-            ember.scale.set(size, size, size);
-            
-            // Add animation data
-            ember.userData = {
-                floatSpeed: 0.01 + Math.random() * 0.02,
-                driftSpeed: 0.005 + Math.random() * 0.01,
-                driftDirection: Math.random() * Math.PI * 2,
-                pulsePhase: Math.random() * Math.PI * 2,
-                pulseSpeed: 0.1 + Math.random() * 0.2,
-                originalSize: size,
-                fadeSpeed: 0.002 + Math.random() * 0.004
-            };
-            
-            group.add(ember);
-        }
-    },
-    
-    // Confetti particles (for Rainbow Celebration - level 10)
-    addConfetti: function(group, theme) {
-        const confettiCount = 200;
-        
-        // Create small rectangular pieces
-        const confettiGeometry = new THREE.PlaneGeometry(0.1, 0.1);
-        
-        for (let i = 0; i < confettiCount; i++) {
-            // Use all rainbow colors from theme
-            const confettiColor = theme.decorationColors[Math.floor(Math.random() * theme.decorationColors.length)];
-            
-            const confettiMaterial = new THREE.MeshLambertMaterial({
-                color: confettiColor,
-                side: THREE.DoubleSide
-            });
-            
-            const confetti = new THREE.Mesh(confettiGeometry, confettiMaterial);
-            
-            // Position randomly in the air
-            const radius = Math.random() * 45;
-            const angle = Math.random() * Math.PI * 2;
-            const height = 1 + Math.random() * 8;
-            
-            confetti.position.set(
-                Math.cos(angle) * radius,
-                height,
+                0, // At ground level
                 Math.sin(angle) * radius
             );
             
             // Random rotation
-            confetti.rotation.x = Math.random() * Math.PI * 2;
-            confetti.rotation.y = Math.random() * Math.PI * 2;
-            confetti.rotation.z = Math.random() * Math.PI * 2;
+            flower.rotation.y = Math.random() * Math.PI * 2;
             
-            // Add animation data
-            confetti.userData = {
-                fallSpeed: 0.004 + Math.random() * 0.008,
-                spinSpeed: 0.05 + Math.random() * 0.1,
-                driftSpeed: 0.01 + Math.random() * 0.02,
-                driftDirection: Math.random() * Math.PI * 2,
-                originalY: height,
-                spinAxis: new THREE.Vector3(
-                    Math.random() - 0.5,
-                    Math.random() - 0.5,
-                    Math.random() - 0.5
-                ).normalize()
+            // Add subtle animation data
+            flower.userData = {
+                swayPhase: Math.random() * Math.PI * 2,
+                swaySpeed: 0.01 + Math.random() * 0.02,
+                swayAmount: 0.05 + Math.random() * 0.1
             };
             
-            group.add(confetti);
+            group.add(flower);
         }
     },
-    
-    // Helper to create a circular texture
-    createCircleTexture: function(color, size = 64) {
-        const canvas = document.createElement('canvas');
-        canvas.width = size;
-        canvas.height = size;
-        const ctx = canvas.getContext('2d');
-        
-        // Draw circle
-        const radius = size / 2;
-        ctx.beginPath();
-        ctx.arc(radius, radius, radius, 0, Math.PI * 2);
-        
-        // Fill with gradient
-        const gradient = ctx.createRadialGradient(
-            radius, radius, 0,
-            radius, radius, radius
-        );
-        
-        // Convert hex color to rgb
-        const r = (color >> 16) & 255;
-        const g = (color >> 8) & 255;
-        const b = color & 255;
-        
-        gradient.addColorStop(0, `rgba(${r},${g},${b},1)`);
-        gradient.addColorStop(1, `rgba(${r},${g},${b},0)`);
-        
-        ctx.fillStyle = gradient;
-        ctx.fill();
-        
-        const texture = new THREE.CanvasTexture(canvas);
-        return texture;
+
+    // Håndtere endring av vindusstørrelse
+    handleResize: function() {
+        CONFIG.camera.aspect = window.innerWidth / window.innerHeight;
+        CONFIG.camera.updateProjectionMatrix();
+        CONFIG.renderer.setSize(window.innerWidth, window.innerHeight);
     },
     
-    // Helper to create a star-shaped texture
-    createStarTexture: function(color, size = 64) {
-        const canvas = document.createElement('canvas');
-        canvas.width = size;
-        canvas.height = size;
-        const ctx = canvas.getContext('2d');
-        
-        // Convert hex color to rgb
-        const r = (color >> 16) & 255;
-        const g = (color >> 8) & 255;
-        const b = color & 255;
-        
-        // Draw star shape
-        const centerX = size / 2;
-        const centerY = size / 2;
-        const spikes = 5;
-        const outerRadius = size / 2;
-        const innerRadius = size / 5;
-        
-        ctx.beginPath();
-        
-        for (let i = 0; i < spikes * 2; i++) {
-            const radius = i % 2 === 0 ? outerRadius : innerRadius;
-            const angle = (i / (spikes * 2)) * Math.PI * 2;
-            const x = centerX + Math.cos(angle) * radius;
-            const y = centerY + Math.sin(angle) * radius;
-            
-            if (i === 0) {
-                ctx.moveTo(x, y);
-            } else {
-                ctx.lineTo(x, y);
-            }
+    // Renderingsløkke
+    render: function() {
+        // Animate Easter decorations if enhanced graphics are enabled
+        if (CONFIG.enhancedGraphics) {
+            this.animateDecorations();
         }
         
-        ctx.closePath();
-        
-        // Fill with gradient
-        const gradient = ctx.createRadialGradient(
-            centerX, centerY, 0,
-            centerX, centerY, outerRadius
-        );
-        
-        gradient.addColorStop(0, `rgba(${r},${g},${b},1)`);
-        gradient.addColorStop(0.7, `rgba(${r},${g},${b},0.5)`);
-        gradient.addColorStop(1, `rgba(${r},${g},${b},0)`);
-        
-        ctx.fillStyle = gradient;
-        ctx.fill();
-        
-        const texture = new THREE.CanvasTexture(canvas);
-        return texture;
+        CONFIG.renderer.render(CONFIG.scene, CONFIG.camera);
     },
     
+    // Fjerne alle objekter ved nivåendring
+    clearScene: function() {
+        // Beholder grunnleggende objekter som lys, men fjerner labyrint, spiller og egg
+        while(CONFIG.scene.children.length > 0) { 
+            CONFIG.scene.remove(CONFIG.scene.children[0]); 
+        }
+        
+        // Get current level theme based on updated CONFIG.currentLevel
+        const currentTheme = CONFIG.levelThemes[CONFIG.currentLevel] || CONFIG.levelThemes[1];
+        
+        // Update background color to match the current level theme
+        CONFIG.scene.background = new THREE.Color(currentTheme.skyColor || CONFIG.colors.sky);
+        
+        // Update fog if enhanced graphics is enabled
+        if (CONFIG.enhancedGraphics) {
+            CONFIG.scene.fog = new THREE.FogExp2(currentTheme.fogColor || 0xC2E7FF, currentTheme.fogDensity || 0.03);
+        }
+        
+        // Gjenopprett grunnleggende elementer
+        this.setupLights();
+        this.createGround();
+        
+        // Recreate decorations if enhanced graphics is enabled
+        if (CONFIG.enhancedGraphics) {
+            this.addEasterDecorations();
+        }
+    },
+
     // Animate decorations
     animateDecorations: function() {
         if (!CONFIG.enhancedGraphics) return;
@@ -1286,258 +941,159 @@ export const RendererModule = {
             });
         }
         
-        // Animate particle effects
-        if (this.particles) {
-            // Get the particles that match the current level's particle effect
-            const currentTheme = CONFIG.levelThemes[CONFIG.currentLevel] || CONFIG.levelThemes[1];
-            const particleEffect = currentTheme.particleEffect;
-            
-            this.particles.children.forEach(particle => {
-                switch(particleEffect) {
-                    case "pollen":
-                        // Gentle floating upward and drifting
-                        particle.position.y += particle.userData.floatSpeed;
-                        particle.position.x += Math.cos(particle.userData.driftDirection) * particle.userData.driftSpeed;
-                        particle.position.z += Math.sin(particle.userData.driftDirection) * particle.userData.driftSpeed;
+        // Animate unique decorations based on theme type
+        const currentTheme = CONFIG.levelThemes[CONFIG.currentLevel] || CONFIG.levelThemes[1];
+        if (this.uniqueDecorations && currentTheme.uniqueDecoration) {
+            // Handle specific animations for different decoration types
+            switch(currentTheme.uniqueDecoration) {
+                case "snowflakes":
+                    // Animate floating snowflakes
+                    this.uniqueDecorations.children.forEach(snowflake => {
+                        // Gentle rotation
+                        snowflake.rotation.y += snowflake.userData.rotateSpeed;
                         
-                        // Reset position if too high
-                        if (particle.position.y > 6) {
-                            particle.position.y = 0;
-                            // New random position
-                            const radius = Math.random() * 50;
-                            const angle = Math.random() * Math.PI * 2;
-                            particle.position.x = Math.cos(angle) * radius;
-                            particle.position.z = Math.sin(angle) * radius;
-                        }
-                        break;
-                        
-                    case "leafs":
-                        // Falling leaves with spinning
-                        particle.position.y -= particle.userData.fallSpeed;
-                        
-                        // Apply drift
-                        particle.position.x += Math.cos(particle.userData.driftDirection) * particle.userData.driftSpeed;
-                        particle.position.z += Math.sin(particle.userData.driftDirection) * particle.userData.driftSpeed;
-                        
-                        // Simplified rotation instead of using rotateOnAxis which can cause errors
-                        if (particle.userData.spinAxis) {
-                            // Use simple rotation instead of rotateOnAxis
-                            particle.rotation.x += particle.userData.spinSpeed * 0.5;
-                            particle.rotation.y += particle.userData.spinSpeed;
-                            particle.rotation.z += particle.userData.spinSpeed * 0.7;
-                        }
-                        
-                        // Reset if too low
-                        if (particle.position.y < -0.5) {
-                            particle.position.y = particle.userData.originalY;
-                            // New random position
-                            const radius = Math.random() * 45;
-                            const angle = Math.random() * Math.PI * 2;
-                            particle.position.x = Math.cos(angle) * radius;
-                            particle.position.z = Math.sin(angle) * radius;
-                        }
-                        break;
-                        
-                    case "petals":
-                        // Gently falling cherry blossom petals
-                        particle.position.y -= particle.userData.fallSpeed;
-                        
-                        // Apply drift in breeze
-                        particle.userData.bobPhase += 0.02;
-                        const driftFactor = Math.sin(particle.userData.bobPhase) * 0.5 + 0.5;
-                        
-                        particle.position.x += Math.cos(particle.userData.driftDirection) * particle.userData.driftSpeed * driftFactor;
-                        particle.position.z += Math.sin(particle.userData.driftDirection) * particle.userData.driftSpeed * driftFactor;
-                        
-                        // Gentle spinning
-                        particle.rotation.z += particle.userData.spinSpeed * 0.5;
-                        
-                        // Reset if too low
-                        if (particle.position.y < -0.5) {
-                            particle.position.y = particle.userData.originalY;
-                            // New random position
-                            const radius = Math.random() * 45;
-                            const angle = Math.random() * Math.PI * 2;
-                            particle.position.x = Math.cos(angle) * radius;
-                            particle.position.z = Math.sin(angle) * radius;
-                            // New random rotation
-                            particle.rotation.x = -Math.PI / 2 + (Math.random() - 0.5) * 0.5;
-                            particle.rotation.z = Math.random() * Math.PI * 2;
-                        }
-                        break;
-                        
-                    case "bubbles":
-                        // Floating bubbles
-                        particle.position.y += particle.userData.floatSpeed;
-                        
-                        // Apply drift
-                        particle.position.x += Math.cos(particle.userData.driftDirection) * particle.userData.driftSpeed;
-                        particle.position.z += Math.sin(particle.userData.driftDirection) * particle.userData.driftSpeed;
-                        
-                        // Reset if too high or pop bubbles
-                        if (particle.position.y > particle.userData.maxHeight || Math.random() < 0.001) {
-                            // Either reset or "pop" (disappear and reappear somewhere else)
-                            particle.position.y = particle.userData.originalY;
-                            // New random position
-                            const radius = Math.random() * 40;
-                            const angle = Math.random() * Math.PI * 2;
-                            particle.position.x = Math.cos(angle) * radius;
-                            particle.position.z = Math.sin(angle) * radius;
-                        }
-                        break;
-                        
-                    case "chocolateSparkles":
-                    case "purpleSparkles":
-                    case "greenSparkles":
-                        // Pulsing sparkle effect
-                        particle.userData.pulsePhase += particle.userData.pulseSpeed;
-                        const pulseFactor = 0.7 + Math.sin(particle.userData.pulsePhase) * 0.3;
-                        
-                        const size = particle.scale.x; // Original scale
-                        particle.scale.set(size * pulseFactor, size * pulseFactor, size * pulseFactor);
-                        
-                        // Drift slowly
-                        particle.position.x += Math.cos(particle.userData.driftDirection) * particle.userData.driftSpeed;
-                        particle.position.z += Math.sin(particle.userData.driftDirection) * particle.userData.driftSpeed;
-                        
-                        // Slow rising for some sparkles
-                        if (Math.random() < 0.01) {
-                            particle.position.y += particle.userData.floatSpeed || 0.01;
-                            
-                            // Reset if too high
-                            if (particle.position.y > 5) {
-                                particle.position.y = particle.userData.originalY;
-                                // New random position
-                                const radius = Math.random() * 45;
-                                const angle = Math.random() * Math.PI * 2;
-                                particle.position.x = Math.cos(angle) * radius;
-                                particle.position.z = Math.sin(angle) * radius;
-                            }
-                        }
-                        break;
-                        
-                    case "goldDust":
-                        // Gold dust particles - gentle floating and twinkling
-                        particle.userData.pulsePhase += particle.userData.pulseSpeed;
-                        const twinkleFactor = 0.6 + Math.sin(particle.userData.pulsePhase) * 0.4;
-                        
-                        // Scale pulsing for twinkling effect
-                        const goldSize = particle.scale.x; // Current scale
-                        particle.scale.set(goldSize * twinkleFactor, goldSize * twinkleFactor, goldSize * twinkleFactor);
-                        
-                        // Very slow rising
-                        particle.position.y += particle.userData.floatSpeed;
+                        // Bobbing motion
+                        snowflake.userData.bobPhase += snowflake.userData.bobSpeed;
+                        snowflake.position.y = snowflake.userData.originalY + Math.sin(snowflake.userData.bobPhase) * 0.1;
                         
                         // Gentle drift
-                        particle.position.x += Math.cos(particle.userData.driftDirection) * particle.userData.driftSpeed;
-                        particle.position.z += Math.sin(particle.userData.driftDirection) * particle.userData.driftSpeed;
+                        snowflake.position.x += Math.cos(snowflake.userData.driftDirection) * snowflake.userData.driftSpeed;
+                        snowflake.position.z += Math.sin(snowflake.userData.driftDirection) * snowflake.userData.driftSpeed;
                         
-                        // Reset if too high
-                        if (particle.position.y > 8) {
-                            particle.position.y = 0;
-                            // New random position
-                            const radius = Math.random() * 40;
-                            const angle = Math.random() * Math.PI * 2;
-                            particle.position.x = Math.cos(angle) * radius;
-                            particle.position.z = Math.sin(angle) * radius;
+                        // Keep within bounds
+                        const maxDist = 45;
+                        if (snowflake.position.x > maxDist || snowflake.position.x < -maxDist ||
+                            snowflake.position.z > maxDist || snowflake.position.z < -maxDist) {
+                            // Change direction toward center
+                            const targetAngle = Math.atan2(-snowflake.position.z, -snowflake.position.x);
+                            const currentAngle = snowflake.userData.driftDirection;
+                            snowflake.userData.driftDirection = currentAngle + (targetAngle - currentAngle) * 0.05;
                         }
-                        break;
-                        
-                    case "embers":
-                        // Floating embers with flickering
-                        particle.userData.pulsePhase += particle.userData.pulseSpeed;
-                        const flickerFactor = 0.7 + Math.sin(particle.userData.pulsePhase) * 0.3;
-                        
-                        // Scale and opacity for flickering effect
-                        const emberSize = particle.userData.originalSize * flickerFactor;
-                        particle.scale.set(emberSize, emberSize, emberSize);
-                        particle.material.opacity = 0.4 + Math.sin(particle.userData.pulsePhase * 1.5) * 0.3;
-                        
-                        // Rising
-                        particle.position.y += particle.userData.floatSpeed;
-                        
-                        // Drift in air currents
-                        particle.position.x += Math.cos(particle.userData.driftDirection) * particle.userData.driftSpeed;
-                        particle.position.z += Math.sin(particle.userData.driftDirection) * particle.userData.driftSpeed;
-                        
-                        // Fade and reset if too high
-                        if (particle.position.y > 10) {
-                            particle.material.opacity -= particle.userData.fadeSpeed;
+                    });
+                    break;
+                    
+                case "icicles":
+                    // Animate icicles and ice crystals
+                    this.uniqueDecorations.children.forEach(icicle => {
+                        // Check if it's an ice crystal formation (has multiple children)
+                        if (icicle.children.length > 1) {
+                            // This is an ice crystal formation
+                            // Gentle pulsing/glinting effect
+                            icicle.userData.glintPhase += icicle.userData.glintSpeed;
                             
-                            if (particle.material.opacity <= 0.1) {
-                                particle.position.y = 0.5 + Math.random() * 2;
-                                particle.material.opacity = 0.7;
-                                // New random position
-                                const radius = Math.random() * 40;
-                                const angle = Math.random() * Math.PI * 2;
-                                particle.position.x = Math.cos(angle) * radius;
-                                particle.position.z = Math.sin(angle) * radius;
+                            // Apply subtle pulse to crystal formation
+                            const pulseFactor = 1 + Math.sin(icicle.userData.glintPhase) * icicle.userData.pulseAmount;
+                            icicle.scale.set(
+                                icicle.scale.x * (1 + (pulseFactor - 1) * 0.1),
+                                icicle.scale.y * (1 + (pulseFactor - 1) * 0.1),
+                                icicle.scale.z * (1 + (pulseFactor - 1) * 0.1)
+                            );
+                            
+                            // Normalize scale to prevent continuous growth
+                            const normalFactor = 1 / (1 + (pulseFactor - 1) * 0.1);
+                            icicle.scale.multiplyScalar(normalFactor);
+                        } else {
+                            // This is a hanging icicle
+                            // Simulate dripping/growing effect
+                            icicle.userData.drippingPhase += icicle.userData.drippingSpeed;
+                            
+                            // Subtle stretching effect
+                            const stretchFactor = 1 + Math.sin(icicle.userData.drippingPhase) * icicle.userData.growShrinkAmount;
+                            if (icicle.children[0]) {
+                                icicle.children[0].scale.y = stretchFactor;
+                                
+                                // Occasionally simulate a drip
+                                if (Math.random() < 0.001) {
+                                    // Reset phase for next drip
+                                    icicle.userData.drippingPhase = 0;
+                                }
                             }
                         }
-                        break;
+                    });
+                    break;
+            }
+        }
+
+        // Handle falling petals
+        if (this.uniqueDecorations) {
+            this.uniqueDecorations.children.forEach(element => {
+                if (element.userData.fallSpeed) {
+                    // Move petal downward
+                    element.position.y -= element.userData.fallSpeed;
+                    
+                    // If fallen below the ground, reset its position
+                    if (element.position.y < -0.5) {
+                        // Reset to original height
+                        element.position.y = element.userData.originalY || 5 + Math.random() * 20;
                         
-                    case "confetti":
-                        // Falling confetti with spinning
-                        particle.position.y -= particle.userData.fallSpeed;
-                        
-                        // Apply drift
-                        particle.position.x += Math.cos(particle.userData.driftDirection) * particle.userData.driftSpeed;
-                        particle.position.z += Math.sin(particle.userData.driftDirection) * particle.userData.driftSpeed;
-                        
-                        // Complex spinning on all axes
-                        const confettiAxis = particle.userData.spinAxis;
-                        particle.rotateOnAxis(confettiAxis, particle.userData.spinSpeed);
-                        
-                        // Reset if too low
-                        if (particle.position.y < -0.5) {
-                            particle.position.y = particle.userData.originalY;
-                            // New random position
-                            const radius = Math.random() * 45;
-                            const angle = Math.random() * Math.PI * 2;
-                            particle.position.x = Math.cos(angle) * radius;
-                            particle.position.z = Math.sin(angle) * radius;
-                            // New random rotation
-                            particle.rotation.x = Math.random() * Math.PI * 2;
-                            particle.rotation.y = Math.random() * Math.PI * 2;
-                            particle.rotation.z = Math.random() * Math.PI * 2;
-                        }
-                        break;
+                        // New random horizontal position
+                        const radius = Math.random() * 50;
+                        const angle = Math.random() * Math.PI * 2;
+                        element.position.x = Math.cos(angle) * radius;
+                        element.position.z = Math.sin(angle) * radius;
+                    }
                 }
             });
         }
     },
     
-    // Håndtere endring av vindusstørrelse
-    handleResize: function() {
-        CONFIG.camera.aspect = window.innerWidth / window.innerHeight;
-        CONFIG.camera.updateProjectionMatrix();
-        CONFIG.renderer.setSize(window.innerWidth, window.innerHeight);
-    },
-    
-    // Renderingsløkke
-    render: function() {
-        // Animate Easter decorations if enhanced graphics are enabled
-        if (CONFIG.enhancedGraphics) {
-            this.animateDecorations();
-        }
+    // Add snowflake particles for winter-themed levels
+    addSnowflakeParticles: function(group, theme) {
+        const snowflakeCount = 100;
+        const fallSpeedMax = theme.particleEffect === "blizzard" ? 0.08 : 0.04;
         
-        CONFIG.renderer.render(CONFIG.scene, CONFIG.camera);
-    },
-    
-    // Fjerne alle objekter ved nivåendring
-    clearScene: function() {
-        // Beholder grunnleggende objekter som lys, men fjerner labyrint, spiller og egg
-        while(CONFIG.scene.children.length > 0) { 
-            CONFIG.scene.remove(CONFIG.scene.children[0]); 
-        }
+        // Create a simple snowflake texture
+        const textureSize = 32;
+        const canvas = document.createElement('canvas');
+        canvas.width = textureSize;
+        canvas.height = textureSize;
+        const ctx = canvas.getContext('2d');
         
-        // Gjenopprett grunnleggende elementer
-        this.setupLights();
-        this.createGround();
+        // Draw snowflake
+        ctx.fillStyle = '#FFFFFF';
+        ctx.beginPath();
+        ctx.arc(textureSize/2, textureSize/2, textureSize/4, 0, Math.PI * 2);
+        ctx.fill();
         
-        // Recreate decorations if enhanced graphics is enabled
-        if (CONFIG.enhancedGraphics) {
-            this.addEasterDecorations();
+        const snowflakeTexture = new THREE.CanvasTexture(canvas);
+        
+        // Create individual snowflakes
+        for (let i = 0; i < snowflakeCount; i++) {
+            const spriteMaterial = new THREE.SpriteMaterial({ 
+                map: snowflakeTexture,
+                transparent: true,
+                opacity: 0.8
+            });
+            
+            const snowflake = new THREE.Sprite(spriteMaterial);
+            
+            // Small size for snowflakes
+            const scale = 0.1 + Math.random() * 0.15;
+            snowflake.scale.set(scale, scale, scale);
+            
+            // Random positioning
+            const radius = Math.random() * 60;
+            const angle = Math.random() * Math.PI * 2;
+            const height = 5 + Math.random() * 15;
+            
+            snowflake.position.set(
+                Math.cos(angle) * radius,
+                height,
+                Math.sin(angle) * radius
+            );
+            
+            // Add animation properties
+            snowflake.userData = {
+                fallSpeed: (0.01 + Math.random() * fallSpeedMax),
+                driftSpeed: 0.01 + Math.random() * 0.03,
+                driftDirection: theme.particleEffect === "blizzard" ? Math.PI * 0.25 : Math.random() * Math.PI * 2,
+                wobbleSpeed: 0.02 + Math.random() * 0.03,
+                wobbleAmount: 0.1 + Math.random() * 0.5,
+                wobblePhase: Math.random() * Math.PI * 2,
+                originalY: height
+            };
+            
+            group.add(snowflake);
         }
     }
 };

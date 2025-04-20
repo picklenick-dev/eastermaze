@@ -60,47 +60,48 @@ export const CONFIG = {
     levelThemes: {
         1: {
             name: "Spring Garden",
-            wallColor: 0xB19276,
+            wallColor: 0xD19276,
             wallBaseTexture: "#F5E8C0",
             wallPatternColor: "#EFE0B0",
-            frameColor: 0x9B7653,
-            decorationColors: [0xFFAAAA, 0xAAFFAA, 0xFFFFAA],
+            frameColor: 0xA17653,
+            decorationColors: [0xFF6666, 0x77FF77, 0xFFFF66],
             // New distinguishing features
             groundColor: 0x88D169,
-            skyColor: 0x87CEEB,
+            skyColor: 0x5FBAED,
             fogColor: 0xC2E7FF,
             fogDensity: 0.02,
             uniqueDecoration: "flowers", // Special decoration type
             particleEffect: "pollen", // Floating pollen particles
-            lightIntensity: 0.9
+            lightIntensity: 1.0
         },
         2: {
-            name: "Forest Meadow",
-            wallColor: 0x8D7357,
-            wallBaseTexture: "#E8D8B0",
-            wallPatternColor: "#D8C8A0",
-            frameColor: 0x755C48,
-            decorationColors: [0xAAFFAA, 0x99EE99, 0xDDFFBB],
-            // New distinguishing features
-            groundColor: 0x6DAE56,
-            skyColor: 0x8CBED6,
-            fogColor: 0xA8C8D8,
-            fogDensity: 0.03,
-            uniqueDecoration: "mushrooms", // Mushrooms on the ground
-            particleEffect: "leafs", // Floating leafs
-            lightIntensity: 0.8
+            name: "Winter Wonderland", // Snow theme for level 2
+            wallColor: 0xEEEEFF,
+            wallBaseTexture: "#FFFFFF",
+            wallPatternColor: "#E0E9FF",
+            frameColor: 0x9AABD8,
+            decorationColors: [0xBBDDFF, 0xCCEEFF, 0xDDFFFF],
+            // Snow theme features
+            groundColor: 0xFFFFFF, // Pure white snow
+            skyColor: 0xADD8E6,
+            fogColor: 0xE6F0FF,
+            fogDensity: 0.04, // Thicker fog for snow effect
+            uniqueDecoration: "snowflakes", // Snowflake decorations
+            particleEffect: "snowfall", // Falling snow particles
+            lightIntensity: 1.2, // Brighter to reflect snow
+            isSnowTheme: true // Flag for snow theme
         },
         3: {
             name: "Pink Bloom",
-            wallColor: 0xAA8866,
+            wallColor: 0xD97766, // More saturated
             wallBaseTexture: "#FFDCE8",
-            wallPatternColor: "#EEBED8",
-            frameColor: 0x8B6144,
-            decorationColors: [0xFF9999, 0xFFCCDD, 0xFF88BB],
+            wallPatternColor: "#FF9EC8", // Brighter pink
+            frameColor: 0xA93144, // Darker, more contrast
+            decorationColors: [0xFF5577, 0xFFAADD, 0xFF4488],
             // New distinguishing features
-            groundColor: 0x95D882,
-            skyColor: 0xFFDDEE,
-            fogColor: 0xFFCCDD,
+            groundColor: 0xEEC1DD, // Light pink, cherry blossom-like ground
+            skyColor: 0xFFBBDD, // More saturated pink sky
+            fogColor: 0xFFAACC,
             fogDensity: 0.025,
             uniqueDecoration: "cherryBlossoms", // Cherry blossom petals
             particleEffect: "petals", // Floating pink petals
@@ -108,15 +109,15 @@ export const CONFIG = {
         },
         4: {
             name: "Sky Blue",
-            wallColor: 0x7A654D,
+            wallColor: 0x594D35, // Darker for contrast
             wallBaseTexture: "#D8E8FF",
-            wallPatternColor: "#C8D8EE",
-            frameColor: 0x8A6D4D,
-            decorationColors: [0x99CCFF, 0xAADDFF, 0xBBEEFF],
+            wallPatternColor: "#A8C8FF", // More saturated blue
+            frameColor: 0x705736, // Darker brown
+            decorationColors: [0x4499FF, 0x66BBFF, 0x88DDFF], // Brighter blues
             // New distinguishing features
             groundColor: 0x7AC95D,
-            skyColor: 0x66CCFF,
-            fogColor: 0xCCEEFF,
+            skyColor: 0x33AAFF, // Deeper blue
+            fogColor: 0xBBDDFF,
             fogDensity: 0.015,
             uniqueDecoration: "butterflies", // More butterflies
             particleEffect: "bubbles", // Floating bubbles
@@ -124,15 +125,15 @@ export const CONFIG = {
         },
         5: {
             name: "Chocolate Rush",
-            wallColor: 0x6E4C36,
-            wallBaseTexture: "#D2B48C",
-            wallPatternColor: "#C19A6B",
-            frameColor: 0x5B3A24,
-            decorationColors: [0xAA6633, 0xCCBB99, 0xFFCC88],
+            wallColor: 0x502D18, // Darker, richer brown
+            wallBaseTexture: "#C29875", // More saturated
+            wallPatternColor: "#9E6B3C", // Darker chocolate
+            frameColor: 0x3A1A05, // Very dark brown for contrast
+            decorationColors: [0x882200, 0xAA6633, 0xDD8844], // Richer browns
             // New distinguishing features
-            groundColor: 0x73C154,
-            skyColor: 0xE8D0AA,
-            fogColor: 0xD0B088,
+            groundColor: 0xE8C88A, // Sandy golden color for the chocolate theme
+            skyColor: 0xE8A066, // More orange tint
+            fogColor: 0xD0A066,
             fogDensity: 0.035,
             uniqueDecoration: "candies", // Candy decorations
             particleEffect: "chocolateSparkles", // Chocolate sparkles
@@ -140,47 +141,48 @@ export const CONFIG = {
         },
         6: {
             name: "Lavender Fields",
-            wallColor: 0x96836C,
+            wallColor: 0x645348, // Darker walls
             wallBaseTexture: "#E6E6FA",
-            wallPatternColor: "#D6D6EA",
-            frameColor: 0x7C6B5A,
-            decorationColors: [0xCCAAFF, 0xDDBBFF, 0xBB99EE],
+            wallPatternColor: "#B6B6EA", // More saturated lavender
+            frameColor: 0x4C3B2A, // Darker frame
+            decorationColors: [0xAA66FF, 0xBB77FF, 0x9955DD], // Brighter purples
             // New distinguishing features
-            groundColor: 0x8ED26A,
-            skyColor: 0xBBAADD,
-            fogColor: 0xDDCCFF,
+            groundColor: 0x6BB247, // Deeper green
+            skyColor: 0x9988CC, // More saturated purple
+            fogColor: 0xCCBBFF,
             fogDensity: 0.02,
             uniqueDecoration: "lavender", // Lavender plants
             particleEffect: "purpleSparkles", // Purple sparkles
             lightIntensity: 0.95
         },
         7: {
-            name: "Mint Fresh",
-            wallColor: 0x9B8569,
-            wallBaseTexture: "#D5FFEA",
-            wallPatternColor: "#C5EEDB",
-            frameColor: 0x8B7559,
-            decorationColors: [0x88FFCC, 0x99FFDD, 0xAAFFEE],
-            // New distinguishing features
-            groundColor: 0x67C64F,
-            skyColor: 0xAAFFDD,
-            fogColor: 0xCCFFEE,
-            fogDensity: 0.022,
-            uniqueDecoration: "mintLeaves", // Mint leaves
-            particleEffect: "greenSparkles", // Green sparkles
-            lightIntensity: 1.05
+            name: "Arctic Frost", // Second snow theme
+            wallColor: 0xCCDDFF,
+            wallBaseTexture: "#E5F0FF",
+            wallPatternColor: "#D5E5FF",
+            frameColor: 0x7788AA, // Blue-tinted frame
+            decorationColors: [0xAADDFF, 0x99CCFF, 0xBBEEFF],
+            // Arctic theme features
+            groundColor: 0xEBF5FF, // Ice-blue snow with more blue tint for ice world
+            skyColor: 0x7799BB, // Dark blue sky
+            fogColor: 0xCCDDFF,
+            fogDensity: 0.05, // Heavy fog for blizzard effect
+            uniqueDecoration: "icicles", // Icicle decorations
+            particleEffect: "blizzard", // Heavy snow particles
+            lightIntensity: 0.9, // Dimmer for blizzard effect
+            isSnowTheme: true // Flag for snow theme
         },
         8: {
             name: "Golden Summer",
-            wallColor: 0xA38C6D,
-            wallBaseTexture: "#FFFFC0",
-            wallPatternColor: "#EEEEB0",
-            frameColor: 0x937C5D,
-            decorationColors: [0xFFDD88, 0xFFEE99, 0xFFFFAA],
+            wallColor: 0x7D683D, // Darker gold
+            wallBaseTexture: "#FFF68F", // Brighter yellow
+            wallPatternColor: "#FADA5F", // More saturated gold
+            frameColor: 0x604C2D, // Darker frame
+            decorationColors: [0xFFCC44, 0xFFDD22, 0xFFEE33], // Brighter golds
             // New distinguishing features
-            groundColor: 0x9ED87A,
-            skyColor: 0xFFDD88,
-            fogColor: 0xFFEEAA,
+            groundColor: 0x7CB85A, // Deeper green
+            skyColor: 0xFFBB33, // More golden sky
+            fogColor: 0xFFDD88,
             fogDensity: 0.018,
             uniqueDecoration: "sunflowers", // Sunflowers
             particleEffect: "goldDust", // Gold dust particles
@@ -188,15 +190,15 @@ export const CONFIG = {
         },
         9: {
             name: "Sunset Glow",
-            wallColor: 0x9F876A,
-            wallBaseTexture: "#FFEEDD",
-            wallPatternColor: "#EEDDCC",
-            frameColor: 0x8F775A,
-            decorationColors: [0xFFAA88, 0xFFBB99, 0xFFCCAA],
+            wallColor: 0x7F674A, // Darker walls
+            wallBaseTexture: "#FFCCAA", // More saturated orange
+            wallPatternColor: "#FF9966", // Bright orange
+            frameColor: 0x6F573A, // Darker frame
+            decorationColors: [0xFF6622, 0xFF8844, 0xFFAA66], // Brighter oranges
             // New distinguishing features
-            groundColor: 0x85CB65,
-            skyColor: 0xFF9966,
-            fogColor: 0xFFBB99,
+            groundColor: 0x55AB35, // Deeper green for contrast
+            skyColor: 0xFF5522, // Strong sunset orange
+            fogColor: 0xFF8855,
             fogDensity: 0.028,
             uniqueDecoration: "lanterns", // Floating lanterns
             particleEffect: "embers", // Floating embers
@@ -204,14 +206,14 @@ export const CONFIG = {
         },
         10: {
             name: "Rainbow Celebration",
-            wallColor: 0xB19477,
+            wallColor: 0x916457, // Darker base
             wallBaseTexture: "#FFFFFF",
-            wallPatternColor: "#F0F0F0",
-            frameColor: 0xAA8866,
-            decorationColors: [0xFF88AA, 0xFFFF88, 0x88FFAA, 0x88CCFF, 0xCC88FF],
+            wallPatternColor: "#FFFFFF", // Pure white for maximum contrast
+            frameColor: 0x774433, // Darker frame
+            decorationColors: [0xFF2277, 0xFFDD22, 0x22FF77, 0x2277FF, 0xAA22FF], // Brighter rainbow colors
             // New distinguishing features
-            groundColor: 0xA0DA81,
-            skyColor: 0xD8F0FF,
+            groundColor: 0x80BA61, // Deeper green
+            skyColor: 0xB8E0FF, // Brighter blue
             fogColor: 0xE0F0FF,
             fogDensity: 0.01,
             uniqueDecoration: "rainbowBanners", // Rainbow banners and flags
