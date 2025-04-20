@@ -66,6 +66,25 @@ export const HighScoreModule = {
                 comboElement.classList.remove('combo-flash');
                 setTimeout(() => comboElement.classList.add('combo-flash'), 10);
                 
+                // Check if player reached a 3x combo - award an extra life
+                if (CONFIG.comboMultiplier >= 3 && CONFIG.comboMultiplier < 3.5) {
+                    // Only award extra life when exactly hitting 3x (not every time it's >= 3x)
+                    CONFIG.playerLives++;
+                    
+                    // Update lives display
+                    document.getElementById('lives-display').textContent = CONFIG.playerLives;
+                    
+                    // Show a celebratory message
+                    UIModule.showMessage('3x Combo! +1 ekstra liv!', 2000);
+                    
+                    // Add a sparkle effect on the lives display
+                    const livesDisplay = document.getElementById('lives-display');
+                    livesDisplay.classList.add('sparkle-effect');
+                    setTimeout(() => {
+                        livesDisplay.classList.remove('sparkle-effect');
+                    }, 2000);
+                }
+                
                 // Keep track of the max combo for level completion bonus
                 if (CONFIG.comboCount > CONFIG.maxCombo) {
                     CONFIG.maxCombo = CONFIG.comboCount;
@@ -111,6 +130,24 @@ export const HighScoreModule = {
         // Points based on remaining time (10 points per second)
         const timeBonus = CONFIG.remainingTime * 10;
         
+        // Calculate time-based speed bonus
+        // If the player completes the level in less than half the allotted time, they get an extra bonus
+        let speedBonus = 0;
+        const levelConfig = LEVELS[CONFIG.currentLevel - 1];
+        const totalLevelTime = levelConfig.timeLimit || CONFIG.defaultTimeLimit;
+        const timeUsed = totalLevelTime - CONFIG.remainingTime;
+        
+        // Give speed bonus if player completes level in less than 60% of the allotted time
+        if (timeUsed < totalLevelTime * 0.6) {
+            // Calculate bonus: more bonus for faster completion
+            // Formula: bonus = base bonus × (1 - (time used / (total time × 0.6)))
+            const speedFactor = 1 - (timeUsed / (totalLevelTime * 0.6));
+            speedBonus = Math.round(500 * speedFactor); // Up to 500 points for extremely fast completion
+            
+            // Display a message about the speed bonus
+            UIModule.showMessage(`Hurtig! +${speedBonus} poeng hastighetsbonus!`, 1500);
+        }
+        
         // Add bonus for not losing lives (100 points per life)
         const lifeBonus = CONFIG.playerLives * 100;
         
@@ -118,7 +155,7 @@ export const HighScoreModule = {
         const comboBonus = CONFIG.maxCombo * 50;
         
         // Add bonuses to score
-        const totalBonus = timeBonus + lifeBonus + comboBonus;
+        const totalBonus = timeBonus + lifeBonus + comboBonus + speedBonus;
         CONFIG.score += totalBonus;
         CONFIG.levelScore += totalBonus;
         CONFIG.totalScore += CONFIG.levelScore;
@@ -128,6 +165,7 @@ export const HighScoreModule = {
         
         return {
             timeBonus: timeBonus,
+            speedBonus: speedBonus,
             lifeBonus: lifeBonus,
             comboBonus: comboBonus,
             totalBonus: totalBonus
