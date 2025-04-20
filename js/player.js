@@ -644,29 +644,103 @@ const PlayerModule = {
         const currentLevel = LEVELS[CONFIG.currentLevel - 1];
         const mazeDesign = currentLevel.mazeDesign;
         
-        // Calculate grid position - fixed boundary checking to prevent crashes
-        const gridX = Math.round(newX);
-        const gridZ = Math.round(newZ);
+        // Store original position for bounce-back effect
+        const originalX = this.playerPosition.x;
+        const originalZ = this.playerPosition.z;
         
-        // Safe bounds checking to prevent array out-of-bounds errors
-        const isWithinBounds = gridX >= 0 && gridX < mazeDesign[0].length && 
-                              gridZ >= 0 && gridZ < mazeDesign.length;
+        // Try moving in both X and Z directions
+        let canMoveX = true;
+        let canMoveZ = true;
         
-        // Only move if within bounds and not a wall
-        if (isWithinBounds && mazeDesign[gridZ][gridX] !== 1) {
-            this.playerPosition.x = newX;
-            this.playerPosition.z = newZ;
+        // Check X movement
+        const newGridX = Math.round(newX);
+        const currentGridZ = Math.round(this.playerPosition.z);
+        
+        // Safe bounds checking for X movement
+        const isXWithinBounds = newGridX >= 0 && newGridX < mazeDesign[0].length && 
+                               currentGridZ >= 0 && currentGridZ < mazeDesign.length;
+        
+        // If X movement would hit a wall
+        if (!isXWithinBounds || mazeDesign[currentGridZ][newGridX] === 1) {
+            canMoveX = false;
             
-            const mazeSize = mazeDesign.length;
-            this.player.position.set(
-                this.playerPosition.x * 2 - mazeSize, 
-                0, 
-                this.playerPosition.z * 2 - mazeSize
-            );
-            
-            this.updateCameraPosition();
-            EggModule.checkCollection(this.playerPosition);
+            // Apply a small bounce-back in X direction
+            if (direction.x !== 0) {
+                // Bounce back in opposite direction (20% of the attempted movement)
+                const bounceDistance = (newX - originalX) * -0.2;
+                newX = originalX + bounceDistance;
+                
+                // Create subtle visual feedback for collision
+                if (this.glowEffect) {
+                    // Briefly change glow color to indicate wall collision
+                    const originalColor = this.glowEffect.material.color.clone();
+                    this.glowEffect.material.color.setRGB(1.0, 0.8, 0.8); // Slight red tint
+                    
+                    // Restore original color after a short delay
+                    setTimeout(() => {
+                        if (this.glowEffect) {
+                            this.glowEffect.material.color.copy(originalColor);
+                        }
+                    }, 100);
+                }
+            }
         }
+        
+        // Check Z movement
+        const newGridZ = Math.round(newZ);
+        const currentGridX = Math.round(this.playerPosition.x);
+        
+        // Safe bounds checking for Z movement
+        const isZWithinBounds = currentGridX >= 0 && currentGridX < mazeDesign[0].length && 
+                               newGridZ >= 0 && newGridZ < mazeDesign.length;
+        
+        // If Z movement would hit a wall
+        if (!isZWithinBounds || mazeDesign[newGridZ][currentGridX] === 1) {
+            canMoveZ = false;
+            
+            // Apply a small bounce-back in Z direction
+            if (direction.z !== 0) {
+                // Bounce back in opposite direction (20% of the attempted movement)
+                const bounceDistance = (newZ - originalZ) * -0.2;
+                newZ = originalZ + bounceDistance;
+            }
+        }
+        
+        // Final position check - diagonal movement into corners
+        const finalGridX = Math.round(newX);
+        const finalGridZ = Math.round(newZ);
+        
+        const isFinalPosWithinBounds = finalGridX >= 0 && finalGridX < mazeDesign[0].length && 
+                                      finalGridZ >= 0 && finalGridZ < mazeDesign.length;
+        
+        // If we're trying to move diagonally into a corner with walls
+        if (isFinalPosWithinBounds && mazeDesign[finalGridZ][finalGridX] === 1) {
+            // When both directions have walls meeting at a corner, 
+            // prevent diagonal cutting but still allow sliding along walls
+            if (canMoveX) {
+                newZ = originalZ; // Only move in X direction
+            } else if (canMoveZ) {
+                newX = originalX; // Only move in Z direction
+            } else {
+                // If both directions are blocked, apply bounce-back for both
+                newX = originalX + (newX - originalX) * -0.2;
+                newZ = originalZ + (newZ - originalZ) * -0.2;
+            }
+        }
+        
+        // Apply the calculated movements
+        this.playerPosition.x = newX;
+        this.playerPosition.z = newZ;
+        
+        const mazeSize = mazeDesign.length;
+        this.player.position.set(
+            this.playerPosition.x * 2 - mazeSize, 
+            0, 
+            this.playerPosition.z * 2 - mazeSize
+        );
+        
+        this.updateCameraPosition();
+        EggModule.checkCollection(this.playerPosition);
         
         // Animer glødeffekt og hale
         this.animateGlow();
