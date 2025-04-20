@@ -4,7 +4,12 @@ import { CONFIG } from './config.js';
 import { LEVELS } from './levels.js';
 import { GameModule } from './game.js';
 import { HighScoreModule } from './highscore.js';
+import { MazeModule } from './maze.js';
+import { PlayerModule } from './player.js';
+import { EggModule } from './eggs.js';
+import { RendererModule } from './renderer.js';
 import { SoundModule } from './sound.js';
+import { CrocodileModule } from './crocodile.js';
 
 export const UIModule = {
     // Flag to track if debug dropdown is visible
@@ -94,7 +99,10 @@ export const UIModule = {
                     <button id="view-leaderboard-btn" class="secondary-btn">Vis poengtavle</button>
                 </div>
                 <div id="level-selector-container" style="display: block;">
-                 
+                    <label for="level-selector">Velg nivå:</label>
+                    <select id="level-selector">
+                        ${LEVELS.map((level, index) => `<option value="${index}">Nivå ${index + 1}</option>`).join('')}
+                    </select>
                     <div class="sound-option" id="speed-boost-container" style="display: none;">
                         <label>
                             <input type="checkbox" id="speed-toggle">
@@ -167,10 +175,19 @@ export const UIModule = {
             CONFIG.score = 0;
             CONFIG.levelScore = 0;
             CONFIG.maxCombo = 0;
-            HighScoreModule.resetLevelScore();
+
+                // Fjern gamle objekter
+            MazeModule.removeMaze();
+            EggModule.removeAllEggs();
+            PlayerModule.removePlayer(); // Remove old player from scene
+            CrocodileModule.removeAllCrocodiles(); // Fjern alle krokodiller
+            RendererModule.clearScene();
+            // Clean up any remaining sparkle particles
+            PlayerModule.cleanupSparkles();
             
             // Use GameModule to load the selected level
             GameModule.loadLevel();
+
             this.showWelcomeMessage();
         });
     },
