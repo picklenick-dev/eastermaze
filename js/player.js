@@ -1001,12 +1001,41 @@ const PlayerModule = {
         
         const sparkle = new THREE.Mesh(sparkleGeometry, sparkleMaterial);
         
-        // Set random position around the egg
-        sparkle.position.set(
-            this.player.position.x + position.x + (Math.random() * 0.4 - 0.2),
-            this.player.position.y + position.y + (Math.random() * 0.4 - 0.2),
-            this.player.position.z + position.z + (Math.random() * 0.4 - 0.2)
-        );
+        // Check if position is valid to prevent errors
+        if (!position) {
+            // Use player position as fallback if no specific position provided
+            sparkle.position.set(
+                this.player.position.x + (Math.random() * 0.4 - 0.2),
+                this.player.position.y + 1.2 + (Math.random() * 0.4 - 0.2),
+                this.player.position.z + (Math.random() * 0.4 - 0.2)
+            );
+        } else {
+            // Position is a Vector3 - use directly
+            if (position.isVector3) {
+                sparkle.position.set(
+                    this.player.position.x + position.x + (Math.random() * 0.4 - 0.2),
+                    this.player.position.y + position.y + (Math.random() * 0.4 - 0.2),
+                    this.player.position.z + position.z + (Math.random() * 0.4 - 0.2)
+                );
+            } else {
+                // Position is an object with x, y, z properties - use them
+                try {
+                    sparkle.position.set(
+                        this.player.position.x + (position.x || 0) + (Math.random() * 0.4 - 0.2),
+                        this.player.position.y + (position.y || 1.2) + (Math.random() * 0.4 - 0.2),
+                        this.player.position.z + (position.z || 0) + (Math.random() * 0.4 - 0.2)
+                    );
+                } catch (e) {
+                    // If any error occurs, use player position as fallback
+                    console.warn("Error positioning sparkle particle, using default position", e);
+                    sparkle.position.set(
+                        this.player.position.x + (Math.random() * 0.4 - 0.2),
+                        this.player.position.y + 1.2 + (Math.random() * 0.4 - 0.2),
+                        this.player.position.z + (Math.random() * 0.4 - 0.2)
+                    );
+                }
+            }
+        }
         
         // Add to scene
         CONFIG.scene.add(sparkle);

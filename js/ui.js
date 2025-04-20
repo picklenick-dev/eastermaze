@@ -4,6 +4,7 @@ import { CONFIG } from './config.js';
 import { LEVELS } from './levels.js';
 import { GameModule } from './game.js';
 import { HighScoreModule } from './highscore.js';
+import { SoundModule } from './sound.js';
 
 export const UIModule = {
     // Flag to track if debug dropdown is visible
@@ -137,6 +138,12 @@ export const UIModule = {
         // Add event listener for level selector
         document.getElementById('level-selector').addEventListener('change', (e) => {
             CONFIG.currentLevel = parseInt(e.target.value, 10);
+            
+            // Load the selected level when dropdown changes
+            this.removeMessages();
+            GameModule.resetGame();
+            GameModule.loadLevel();
+            this.showWelcomeMessage();
         });
     },
     
